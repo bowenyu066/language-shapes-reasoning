@@ -1,0 +1,54 @@
+# Model configurations for the evaluation pipeline
+
+local_models:
+  qwen3-8b:
+    type: local
+    model_path: "Qwen/Qwen3-8B"  # HuggingFace model ID or local path
+    backend: transformers  # or "ollama"
+    max_context: 8192
+    default_max_tokens: 512
+
+  llama-3.1-8b:
+    type: local
+    model_path: "meta-llama/Llama-3.1-8B-Instruct"
+    backend: transformers
+    max_context: 8192
+    default_max_tokens: 512
+
+  deepseekmath-7b:
+    type: local
+    model_path: "deepseek-ai/deepseek-math-7b-instruct"
+    backend: transformers
+    max_context: 4096
+    default_max_tokens: 512
+
+api_models:
+  chatgpt-5.1:
+    type: openai
+    model_name: "gpt-5.1"  # placeholder - update when available
+    api_key_env: "OPENAI_API_KEY"
+    max_context: 128000
+    default_max_tokens: 1024
+
+  gemini-3:
+    type: gemini
+    model_name: "gemini-3-pro"  # placeholder - update when available
+    api_key_env: "GOOGLE_API_KEY"
+    max_context: 128000
+    default_max_tokens: 1024
+
+  deepseek-r1:
+    type: deepseek
+    model_name: "deepseek-reasoner"
+    api_key_env: "DEEPSEEK_API_KEY"
+    api_base: "https://api.deepseek.com/v1"
+    max_context: 64000
+    default_max_tokens: 1024
+
+  deepseek-r2:
+    type: deepseek
+    model_name: "deepseek-r2"
+    api_key_env: "DEEPSEEK_API_KEY"
+    api_base: "https://api.deepseek.com/v1"
+    max_context: 64000
+    default_max_tokens: 1024

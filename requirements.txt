@@ -1,0 +1,16 @@
+# Core utilities
+tqdm>=4.66.0
+pyyaml>=6.0.1
+pandas>=2.0.0
+numpy>=1.24.0
+requests>=2.31.0
+
+# API clients
+openai>=1.0.0          # for ChatGPT-5.1 (configure OPENAI_API_KEY)
+google-generativeai>=0.3.0  # for Gemini-3 (configure GOOGLE_API_KEY)
+
+# Local model inference (placeholders - install as needed)
+transformers>=4.35.0
+torch>=2.0.0
+# accelerate>=0.24.0   # uncomment if using HF with device_map
+# bitsandbytes>=0.41.0 # uncomment for quantization

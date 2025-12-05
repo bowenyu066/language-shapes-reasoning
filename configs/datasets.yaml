@@ -1,0 +1,39 @@
+# Dataset configurations
+
+gsm8k:
+  source: "openai/grade-school-math"
+  description: "Grade School Math 8K - elementary math word problems"
+  splits:
+    train:
+      raw_path: "data/raw/gsm8k_train.jsonl"
+    test:
+      raw_path: "data/raw/gsm8k_test.jsonl"
+  processed:
+    en_test: "data/processed/gsm8k_en_test.jsonl"
+    zh_test: "data/processed/gsm8k_zh_test.jsonl"
+  languages:
+    - en
+    - zh
+  answer_type: float
+  level: gsm8k
+
+mmath:
+  source: "multilingual-math"
+  description: "MMATH - Multilingual hard math benchmark"
+  raw_path: "data/raw/mmath_raw.jsonl"
+  processed_path: "data/processed/mmath_multilingual.jsonl"
+  languages:
+    - en
+    - zh
+    - de
+    - fr
+    - es
+    - ru
+    - ja
+  subdomains:
+    - algebra
+    - geometry
+    - number_theory
+    - combinatorics
+    - calculus
+  level: hard

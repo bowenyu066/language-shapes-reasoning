@@ -1,0 +1,82 @@
+# Experiment configurations
+
+gsm8k_local:
+  description: "Evaluate open-source models on GSM8K (EN + ZH)"
+  models:
+    - qwen3-8b
+    - llama-3.1-8b
+    - deepseekmath-7b
+  dataset: gsm8k
+  languages:
+    - en
+    - zh
+  modes:
+    - direct
+    - zh_translate_then_solve  # only for zh
+  max_tokens_variants:
+    - 128
+    - 256
+    - 512
+  temperature: 0.0
+  output_dir: "results/gsm8k"
+
+mmath_api:
+  description: "Evaluate frontier models on MMATH"
+  models:
+    - chatgpt-5.1
+    - gemini-3
+    - deepseek-r1
+  dataset: mmath
+  languages:
+    - en
+    - zh
+  modes:
+    - direct
+  max_tokens_variants:
+    - 256
+    - 512
+  temperature: 0.0
+  output_dir: "results/mmath"
+
+# Prompt variants
+prompts:
+  gsm8k_en_direct: |
+    You are a careful math tutor. Solve the following problem step by step.
+    At the end, output ONLY the final numeric answer on a line starting with:
+    Final Answer: <number>
+
+    Problem:
+    {question}
+
+  gsm8k_zh_direct: |
+    你是一名细心的数学老师。请一步一步推理并解答下面这道题。
+    最后请只在单独一行输出最终的数字答案，格式为：
+    Final Answer: <number>
+
+    题目：
+    {question}
+
+  gsm8k_zh_translate_then_solve: |
+    你是一名中英双语的数学老师。请先在心里把这道中文题翻译成英文，再用英文在心里推理并解答。
+    不要展示翻译过程，只展示完整的推理过程（可以用中文），
+    最后在单独一行输出最终的数字答案，格式为：
+    Final Answer: <number>
+
+    题目：
+    {question}
+
+  mmath_en_direct: |
+    You are a careful math tutor. Solve the following problem step by step.
+    At the end, output ONLY the final numeric answer on a line starting with:
+    Final Answer: <number>
+
+    Problem:
+    {question}
+
+  mmath_zh_direct: |
+    你是一名细心的数学老师。请一步一步推理并解答下面这道题。
+    最后请只在单独一行输出最终的数字答案，格式为：
+    Final Answer: <number>
+
+    题目：
+    {question}
