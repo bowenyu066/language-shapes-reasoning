@@ -11,21 +11,21 @@ from tqdm import tqdm
 
 from .data_utils import load_jsonl, ensure_dir
 from .model_interface import BaseModel
-from .parsing import extract_final_answer, is_answer_correct
+from .parsing import extract_final_answer_batch, is_answer_correct_batch
 
 
 # Prompt templates
 PROMPT_TEMPLATES = {
     "gsm8k_en_direct": """You are a careful math tutor. Solve the following problem step by step.
 At the end, output ONLY the final numeric answer on a line starting with:
-Final Answer: <number>
+#### <number>
 
 Problem:
 {question}""",
 
     "gsm8k_zh_direct": """你是一名细心的数学老师。请一步一步推理并解答下面这道题。
 最后请只在单独一行输出最终的数字答案，格式为：
-Final Answer: <number>
+#### <number>
 
 题目：
 {question}""",
@@ -33,21 +33,21 @@ Final Answer: <number>
     "gsm8k_zh_translate_then_solve": """你是一名中英双语的数学老师。请先在心里把这道中文题翻译成英文，再用英文在心里推理并解答。
 不要展示翻译过程，只展示完整的推理过程（可以用中文），
 最后在单独一行输出最终的数字答案，格式为：
-Final Answer: <number>
+#### <number>
 
 题目：
 {question}""",
 
     "mmath_en_direct": """You are a careful math tutor. Solve the following problem step by step.
 At the end, output ONLY the final numeric answer on a line starting with:
-Final Answer: <number>
+#### <number>
 
 Problem:
 {question}""",
 
     "mmath_zh_direct": """你是一名细心的数学老师。请一步一步推理并解答下面这道题。
 最后请只在单独一行输出最终的数字答案，格式为：
-Final Answer: <number>
+#### <number>
 
 题目：
 {question}""",
@@ -118,6 +118,10 @@ def run_experiment(
     mode: str,
     max_tokens: int,
     output_csv_path: str,
+    batch_size: int = 10,
+    temperature: float = 0.8,
+    top_p: float = 0.9,
+    top_k: int = 40,
     prompt_variant: Optional[str] = None,
     limit: Optional[int] = None
 ) -> dict:
@@ -158,40 +162,43 @@ def run_experiment(
     total_output_length = 0
     
     # Run evaluation
-    for record in tqdm(records, desc=f"Evaluating {model.name}"):
-        question = record["question"]
-        gold_answer = str(record["answer"])
+    for i in tqdm(range(0, len(records), batch_size), desc=f"Evaluating {model.name}"):
+        batch = records[i:i + batch_size]
+        questions = [record["question"] for record in batch]
+        gold_answers = [str(record["answer"]) for record in batch]
         
         # Build prompt
-        prompt = build_prompt(
+        prompts = [build_prompt(
             question=question,
             dataset_name=dataset_name,
             language=language,
             mode=mode,
             prompt_variant=prompt_variant
-        )
+        ) for question in questions]
         
         # Generate response
         try:
-            raw_output = model.generate(
-                prompt=prompt,
+            raw_outputs = model.batch_generate(
+                prompts=prompts,
                 max_tokens=max_tokens,
-                temperature=0.0
+                temperature=temperature,
+                top_p=top_p,
+                top_k=top_k
             )
         except Exception as e:
             print(f"Warning: Generation failed for {record['id']}: {e}")
-            raw_output = f"ERROR: {e}"
+            raw_outputs = [f"ERROR: {e}"] * len(batch)
         
         # Extract and evaluate answer
-        pred_answer = extract_final_answer(raw_output)
-        correct = is_answer_correct(pred_answer, gold_answer)
+        pred_answers = extract_final_answer_batch(raw_outputs)
+        correct = is_answer_correct_batch(pred_answers, gold_answers)
         
         if correct:
             correct_count += 1
-        total_output_length += len(raw_output)
+        total_output_length += len(raw_outputs)
         
         # Record result
-        results.append({
+        results.extend({
             "id": record["id"],
             "model": model.name,
             "dataset": dataset_name,
@@ -199,11 +206,12 @@ def run_experiment(
             "mode": mode,
             "max_tokens": max_tokens,
             "gold": gold_answer,
-            "pred": pred_answer or "",
+            "pred": pred_answer,
             "correct": int(correct),
             "raw_output_length": len(raw_output),
             "raw_output": raw_output
-        })
+        } for record, raw_output, gold_answer, pred_answer, correct
+        in zip(batch, raw_outputs, gold_answers, pred_answers, correct))
     
     # Save results to CSV
     if results:

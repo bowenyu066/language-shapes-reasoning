@@ -10,7 +10,7 @@ def extract_final_answer(output: str) -> Optional[str]:
     """
     Extract the final answer from model output.
     
-    Looks for a line starting with 'Final Answer:' and returns the rest stripped.
+    Looks for a line starting with '#### ' and returns the rest stripped.
     
     Args:
         output: Raw model output string.
@@ -22,7 +22,7 @@ def extract_final_answer(output: str) -> Optional[str]:
         return None
     
     # Look for "Final Answer:" pattern (case insensitive)
-    pattern = r"(?i)final\s*answer\s*:\s*(.+)"
+    pattern = r"(?i)^####\s*(.+)"
     
     for line in output.split('\n'):
         match = re.search(pattern, line.strip())
@@ -35,6 +35,19 @@ def extract_final_answer(output: str) -> Optional[str]:
             return answer
     
     return None
+
+
+def extract_final_answer_batch(outputs: list[str]) -> list[Optional[str]]:
+    """
+    Extract the final answer from a batch of model outputs.
+    
+    Args:
+        outputs: List of raw model output strings.
+        
+    Returns:
+        List of extracted answer strings, or None if not found.
+    """
+    return [extract_final_answer(output) for output in outputs]
 
 
 def normalize_number(s: str) -> Optional[float]:
@@ -132,6 +145,25 @@ def is_answer_correct(
     
     # Fall back to string comparison (case-insensitive)
     return pred.lower() == gold.lower()
+
+
+def is_answer_correct_batch(
+    preds: list[Optional[str]],
+    golds: list[str],
+    tolerance: float = 1e-6
+) -> list[bool]:
+    """
+    Check if predicted answers match gold answers for a batch.
+    
+    Args:
+        preds: List of predicted answers (may contain None).
+        golds: List of gold/correct answers.
+        tolerance: Numerical tolerance for float comparison.
+        
+    Returns:
+        List of boolean values indicating correct/incorrect for each example.
+    """
+    return [is_answer_correct(pred, gold, tolerance) for pred, gold in zip(preds, golds)]
 
 
 def extract_boxed_answer(output: str) -> Optional[str]:

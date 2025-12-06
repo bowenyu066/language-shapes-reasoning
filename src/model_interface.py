@@ -3,8 +3,10 @@ Model interface abstractions for local and API-based models.
 """
 
 import os
+import torch
 from abc import ABC, abstractmethod
 from typing import Optional
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 class BaseModel(ABC):
@@ -16,8 +18,10 @@ class BaseModel(ABC):
     def generate(
         self,
         prompt: str,
-        max_tokens: int = 128,
-        temperature: float = 0.0
+        max_tokens: int = 1024,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None
     ) -> str:
         """
         Generate a response for the given prompt.
@@ -26,9 +30,35 @@ class BaseModel(ABC):
             prompt: The input prompt.
             max_tokens: Maximum number of tokens to generate.
             temperature: Sampling temperature (0.0 = greedy).
+            top_p: Top-p sampling parameter.
+            top_k: Top-k sampling parameter.
             
         Returns:
             Generated text response.
+        """
+        ...
+
+    @abstractmethod
+    def batch_generate(
+        self,
+        prompts: list[str],
+        max_tokens: int = 1024,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None
+    ) -> list[str]:
+        """
+        Generate responses for a batch of prompts.
+        
+        Args:
+            prompts: List of input prompts.
+            max_tokens: Maximum number of tokens to generate per prompt.
+            temperature: Sampling temperature (0.0 = greedy).
+            top_p: Top-p sampling parameter.
+            top_k: Top-k sampling parameter.
+            
+        Returns:
+            List of generated text responses.
         """
         ...
 
@@ -44,7 +74,11 @@ class LocalModel(BaseModel):
         name: str,
         model_path: str,
         backend: str = "transformers",
-        device: str = "auto"
+        device: str = "cuda",
+        use_temperature: bool = False,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None
     ):
         """
         Initialize a local model.
@@ -52,7 +86,7 @@ class LocalModel(BaseModel):
         Args:
             name: Display name for the model.
             model_path: HuggingFace model ID or local path.
-            backend: "transformers" or "ollama".
+            backend: "transformers" or "ollama". Right now only "transformers" is supported.
             device: Device to run on ("auto", "cuda", "cpu").
         """
         self.name = name
@@ -68,21 +102,19 @@ class LocalModel(BaseModel):
             return
             
         if self.backend == "transformers":
-            # TODO: Implement HuggingFace transformers loading
-            # from transformers import AutoModelForCausalLM, AutoTokenizer
-            # self._tokenizer = AutoTokenizer.from_pretrained(self.model_path)
-            # self._model = AutoModelForCausalLM.from_pretrained(
-            #     self.model_path,
-            #     device_map=self.device,
-            #     torch_dtype="auto"
-            # )
-            raise NotImplementedError(
-                f"LocalModel.generate() not implemented for {self.name}. "
-                f"TODO: Integrate with HuggingFace transformers. "
-                f"Model path: {self.model_path}"
+            self._tokenizer = AutoTokenizer.from_pretrained(
+                self.model_path,
+                cache_dir=".cache/models",
+            )
+            self._tokenizer.pad_token = self._tokenizer.eos_token
+            self._model = AutoModelForCausalLM.from_pretrained(
+                self.model_path,
+                dtype="bfloat16",
+                attn_implementation="flash_attention_2",
+                cache_dir=".cache/models",
+                device_map=self.device
             )
         elif self.backend == "ollama":
-            # TODO: Implement Ollama integration
             raise NotImplementedError(
                 f"Ollama backend not implemented. "
                 f"TODO: Integrate with Ollama API for {self.name}"
@@ -90,33 +122,73 @@ class LocalModel(BaseModel):
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
     
+    @torch.no_grad()
     def generate(
         self,
         prompt: str,
-        max_tokens: int = 128,
-        temperature: float = 0.0
+        max_tokens: int = 1024,
+        temperature: float = 0.8,
+        top_p: float = 0.9,
+        top_k: int = 40
     ) -> str:
         """
         Generate response using the local model.
-        
-        TODO: Implement actual inference logic.
         """
         self._load_model()
         
-        # Placeholder for actual implementation
-        # Example for transformers:
-        # inputs = self._tokenizer(prompt, return_tensors="pt").to(self._model.device)
-        # outputs = self._model.generate(
-        #     **inputs,
-        #     max_new_tokens=max_tokens,
-        #     temperature=temperature if temperature > 0 else None,
-        #     do_sample=temperature > 0
-        # )
-        # return self._tokenizer.decode(outputs[0], skip_special_tokens=True)
-        
-        raise NotImplementedError(
-            f"LocalModel.generate() not implemented for {self.name}"
+        inputs = self._tokenizer(
+            prompt,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=max_tokens
+        ).to(self._model.device)
+
+        outputs = self._model.generate(
+            **inputs,
+            max_new_tokens=max_tokens,
+            temperature=temperature if temperature > 0 else None,
+            do_sample=temperature > 0,
+            top_p=top_p,
+            top_k=top_k,
+            pad_token_id=self._tokenizer.pad_token_id,
+            eos_token_id=self._tokenizer.eos_token_id,
         )
+        return self._tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    @torch.no_grad()
+    def batch_generate(
+        self,
+        prompts: list[str],
+        max_tokens: int = 1024,
+        temperature: float = 0.8,
+        top_p: float = 0.9,
+        top_k: int = 40
+    ) -> list[str]:
+        """
+        Generate responses for a batch of prompts.
+        """
+        self._load_model()
+        
+        inputs = self._tokenizer(
+            prompts,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=max_tokens
+        ).to(self._model.device)
+
+        outputs = self._model.generate(
+            **inputs,
+            max_new_tokens=max_tokens,
+            temperature=temperature if temperature > 0 else None,
+            do_sample=temperature > 0,
+            top_p=top_p,
+            top_k=top_k,
+            pad_token_id=self._tokenizer.pad_token_id,
+            eos_token_id=self._tokenizer.eos_token_id,
+        )
+        return self._tokenizer.batch_decode(outputs[:, inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
 
 
 class OpenAIChatModel(BaseModel):
@@ -168,7 +240,7 @@ class OpenAIChatModel(BaseModel):
         self,
         prompt: str,
         max_tokens: Optional[int] = None,
-        temperature: float = 0.2     # Note: need testing
+        temperature: float = 0.8,       # Note: need testing
     ) -> str:
         """Generate response using OpenAI API."""
         client = self._get_client()
@@ -178,7 +250,7 @@ class OpenAIChatModel(BaseModel):
                 model=self.model_name,
                 input=prompt,
                 max_output_tokens=max_tokens,
-                temperature=temperature if self.use_temperature else None
+                temperature=temperature if self.use_temperature else None,
             )
             return response.output_text
         except Exception as e:

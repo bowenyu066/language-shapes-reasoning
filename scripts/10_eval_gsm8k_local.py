@@ -26,15 +26,27 @@ from src.data_utils import ensure_dir
 LOCAL_MODELS = {
     "qwen3-8b": {
         "model_path": "Qwen/Qwen3-8B",
-        "backend": "transformers"
+        "backend": "transformers",
+        "use_temperature": True,
+        "temperature": 0.6,
+        "top_p": 0.95,
+        "top_k": 20
     },
     "llama-3.1-8b": {
         "model_path": "meta-llama/Llama-3.1-8B-Instruct",
-        "backend": "transformers"
+        "backend": "transformers",
+        "use_temperature": True,
+        "temperature": 0.6,
+        "top_p": 0.95,
+        "top_k": 20
     },
     "deepseekmath-7b": {
         "model_path": "deepseek-ai/deepseek-math-7b-instruct",
-        "backend": "transformers"
+        "backend": "transformers",
+        "use_temperature": True,
+        "temperature": 0.6,
+        "top_p": 0.95,
+        "top_k": 20
     }
 }
 
@@ -58,13 +70,13 @@ def create_model(model_name: str) -> LocalModel:
     return LocalModel(
         name=model_name,
         model_path=config["model_path"],
-        backend=config["backend"]
+        backend=config["backend"],
     )
 
 
 def get_dataset_path(language: str) -> str:
     """Get the dataset path for a language."""
-    return f"data/processed/gsm8k_{language}_test.jsonl"
+    return f"data/processed/gsm8k/gsm8k_{language}_test.jsonl"
 
 
 def run_all_experiments(
