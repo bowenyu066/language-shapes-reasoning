@@ -124,12 +124,12 @@ def main():
     print()
     
     # Paths
-    raw_path_train = "data/raw/gsm8k_train.jsonl"
-    raw_path_test = "data/raw/gsm8k_test.jsonl"
-    en_output_path_train = "data/processed/gsm8k_en_train.jsonl"
-    en_output_path_test = "data/processed/gsm8k_en_test.jsonl"
-    zh_output_path_train = "data/processed/gsm8k_zh_train.jsonl"
-    zh_output_path_test = "data/processed/gsm8k_zh_test.jsonl"
+    raw_path_train = "data/raw/gsm8k/gsm8k_train.jsonl"
+    raw_path_test = "data/raw/gsm8k/gsm8k_test.jsonl"
+    en_output_path_train = "data/processed/gsm8k/gsm8k_en_train.jsonl"
+    en_output_path_test = "data/processed/gsm8k/gsm8k_en_test.jsonl"
+    zh_output_path_train = "data/processed/gsm8k/gsm8k_zh_train.jsonl"
+    zh_output_path_test = "data/processed/gsm8k/gsm8k_zh_test.jsonl"
     
     # Check if raw data exists
     if not os.path.exists(raw_path_train):
@@ -192,13 +192,13 @@ def main():
     translated_train, failed_train = translate_to_zh(
         records=translation_input_train,
         model_client=model_client,
-        batch_size=10
+        batch_size=50
     )
     
     translated_test, failed_test = translate_to_zh(
         records=translation_input_test,
         model_client=model_client,
-        batch_size=10
+        batch_size=50
     )
     
     # Create translation lookup
