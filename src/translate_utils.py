@@ -67,7 +67,7 @@ Output (JSON only):
 def translate_to_zh(
     records: List[Dict[str, Any]],
     model_client: ModelClient,
-    batch_size: int = 10
+    batch_size: int = 50,
 ) -> Tuple[List[Dict[str, Any]], List[str]]:
     """
     Translate questions and solutions from English to Chinese using an LLM.

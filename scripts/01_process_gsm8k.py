@@ -168,7 +168,7 @@ def main():
     
     translator = OpenAIChatModel(
         name="translator",
-        model_name="gpt-5-nano",
+        model_name="gpt-5-mini",
         use_temperature=False
     )
     class TranslatorWrapper:
