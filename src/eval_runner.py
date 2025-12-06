@@ -186,7 +186,7 @@ def run_experiment(
                 top_k=top_k
             )
         except Exception as e:
-            print(f"Warning: Generation failed for {record['id']}: {e}")
+            print(f"Warning: Generation failed for {[record['id'] for record in batch]}: {e}")
             raw_outputs = [f"ERROR: {e}"] * len(batch)
         
         # Extract and evaluate answer
