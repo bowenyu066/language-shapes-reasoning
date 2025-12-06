@@ -14,65 +14,35 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.data_utils import ensure_dir, save_jsonl
+from datasets import load_dataset
 
-
-def download_gsm8k():
+def download_gsm8k(debug: bool = False):
     """
     Download GSM8K dataset from HuggingFace.
-    
-    TODO: Implement actual download. For now, creates placeholder files.
+
+    * Notes for debugging: `dataset` contains two splits, "train" and "test".
+    Each split is a list of dictionaries, where each dictionary contains the
+    keys "question" and "answer". The "answer" is in the format "....<solution>\n#### <answer>".
     """
     print("Downloading GSM8K dataset...")
     
-    # TODO: Use HuggingFace datasets library
-    # from datasets import load_dataset
-    # dataset = load_dataset("openai/gsm8k", "main")
+    # Use HuggingFace datasets library
+    dataset = load_dataset("openai/gsm8k", "main")
     
     raw_dir = "data/raw"
     ensure_dir(raw_dir)
     
-    # Placeholder: Create sample data files
-    # In production, replace with actual download
-    
-    sample_train = [
-        {
-            "question": "Natalia sold clips to 48 of her friends in April, and then she sold half as many clips in May. How many clips did Natalia sell altogether in April and May?",
-            "answer": "72"
-        },
-        {
-            "question": "Weng earns $12 an hour for babysitting. Yesterday, she just did 50 minutes of babysitting. How much did she earn?",
-            "answer": "10"
-        }
-    ]
-    
-    sample_test = [
-        {
-            "question": "Jesse and Mia are competing in a week long race. They have one week to run 30 miles. On the first three days Jesse averages (2/3) of a mile. On day four she runs 10 miles. Mia averages 3 miles a day over the first 4 days. What is the average of their declines on day 4 from their daily averages over the first three days?",
-            "answer": "4.5"
-        },
-        {
-            "question": "A robe takes 2 bolts of blue fiber and half that much white fiber. How many bolts in total does it take?",
-            "answer": "3"
-        },
-        {
-            "question": "Josh decides to try flipping a house. He buys a house for $80,000 and then puts in $50,000 in repairs. This increased the value of the house by 150%. How much profit did he make?",
-            "answer": "70000"
-        }
-    ]
-    
-    # Save placeholder files
     train_path = os.path.join(raw_dir, "gsm8k_train.jsonl")
     test_path = os.path.join(raw_dir, "gsm8k_test.jsonl")
     
-    save_jsonl(train_path, sample_train)
-    save_jsonl(test_path, sample_test)
+    save_jsonl(train_path, dataset["train"].select(range(10)) if debug else dataset["train"])
+    save_jsonl(test_path, dataset["test"].select(range(10)) if debug else dataset["test"])
     
-    print(f"  Saved {len(sample_train)} train examples to {train_path}")
-    print(f"  Saved {len(sample_test)} test examples to {test_path}")
-    print("  NOTE: These are placeholder samples. Replace with full dataset download.")
+    print(f"  Saved {len(dataset['train'])} train examples to {train_path}")
+    print(f"  Saved {len(dataset['test'])} test examples to {test_path}")
 
 
-def download_mmath():
+def download_mmath(debug: bool = False):
     """
     Download MMATH dataset.
     
@@ -125,18 +95,14 @@ def main():
     print("=" * 60)
     print()
     
-    download_gsm8k()
+    download_gsm8k(debug=True)
     print()
     
-    download_mmath()
-    print()
+    # download_mmath()
+    # print()
     
     print("=" * 60)
     print("Download complete!")
-    print()
-    print("Next steps:")
-    print("  1. Replace placeholder data with full datasets")
-    print("  2. Run: python scripts/01_translate_gsm8k_zh.py")
     print("=" * 60)
 
 

@@ -58,3 +58,6 @@ Thumbs.db
 *.tmp
 *.temp
 *_temp.jsonl
+
+# Data files
+data/

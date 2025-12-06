@@ -128,9 +128,10 @@ class OpenAIChatModel(BaseModel):
     def __init__(
         self,
         name: str,
-        model_name: str = "gpt-4",
+        model_name: str = "gpt-5.1",
         api_key: Optional[str] = None,
-        api_base: Optional[str] = None
+        api_base: Optional[str] = None,
+        use_temperature: bool = False,
     ):
         """
         Initialize OpenAI model.
@@ -145,6 +146,7 @@ class OpenAIChatModel(BaseModel):
         self.model_name = model_name
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
         self.api_base = api_base
+        self.use_temperature = use_temperature
         self._client = None
         
     def _get_client(self):
@@ -165,20 +167,20 @@ class OpenAIChatModel(BaseModel):
     def generate(
         self,
         prompt: str,
-        max_tokens: int = 128,
-        temperature: float = 0.0
+        max_tokens: Optional[int] = None,
+        temperature: float = 0.2     # Note: need testing
     ) -> str:
         """Generate response using OpenAI API."""
         client = self._get_client()
         
         try:
-            response = client.chat.completions.create(
+            response = client.responses.create(
                 model=self.model_name,
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=max_tokens,
-                temperature=temperature
+                input=prompt,
+                max_output_tokens=max_tokens,
+                temperature=temperature if self.use_temperature else None
             )
-            return response.choices[0].message.content or ""
+            return response.output_text
         except Exception as e:
             raise RuntimeError(f"OpenAI API call failed: {e}")
 
@@ -226,7 +228,7 @@ class GeminiModel(BaseModel):
     def generate(
         self,
         prompt: str,
-        max_tokens: int = 128,
+        max_tokens: Optional[int] = None,
         temperature: float = 0.0
     ) -> str:
         """Generate response using Gemini API."""
@@ -277,7 +279,7 @@ class DeepSeekAPIModel(BaseModel):
     def generate(
         self,
         prompt: str,
-        max_tokens: int = 128,
+        max_tokens: Optional[int] = None,
         temperature: float = 0.0
     ) -> str:
         """Generate response using DeepSeek API."""

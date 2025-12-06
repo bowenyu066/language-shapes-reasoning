@@ -3,7 +3,7 @@ Translation utilities for converting English math problems to Chinese.
 """
 
 import json
-from typing import Any, Protocol
+from typing import Any, Protocol, List, Dict, Tuple
 from tqdm import tqdm
 
 
@@ -46,11 +46,17 @@ class DummyModelClient:
         return "[]"
 
 
-TRANSLATION_PROMPT_TEMPLATE = """You are a professional translator proficient in English and Simplified Chinese.
-Translate each math word problem from English to natural, fluent Simplified Chinese, preserving all numbers, conditions, and structure exactly.
-Do NOT solve the problems. Do NOT add explanations or hints.
-Input is a JSON array with fields id, question.
-Output a JSON array with the same id and a new field question_zh.
+TRANSLATION_PROMPT_TEMPLATE = """You are a professional translator proficient 
+in English and Simplified Chinese.
+Translate each math problem and its corresponding solutions from English to 
+natural, fluent Simplified Chinese, preserving all numbers, conditions, and 
+structure exactly.
+Do NOT add explanations or hints. Do NOT solve the problems in advance.
+Input is a JSON array containing batches of problems and solutions, each with 
+fields `id`, `question`, and `solution`.
+Output should also be a JSON array containing the translated problems and 
+solutions, each with the same `id` and new fields `question_zh` and 
+`solution_zh`.
 Input:
 {input_json}
 
@@ -58,30 +64,31 @@ Output (JSON only):
 """
 
 
-def translate_questions_to_zh(
-    records: list[dict[str, Any]],
+def translate_to_zh(
+    records: List[Dict[str, Any]],
     model_client: ModelClient,
     batch_size: int = 10
-) -> list[dict[str, Any]]:
+) -> Tuple[List[Dict[str, Any]], List[str]]:
     """
-    Translate questions from English to Chinese using an LLM.
+    Translate questions and solutions from English to Chinese using an LLM.
     
     Args:
-        records: List of records with "id" and "question" fields.
+        records: List of records with "id", "question", and "solution" fields.
         model_client: Object with a `chat(prompt: str) -> str` method.
         batch_size: Number of questions to translate per API call.
         
     Returns:
-        List of records with added "question_zh" field.
+        List of records with added "question_zh" and "solution_zh" fields.
     """
     results = []
+    failed_ids = []
     
     # Process in batches
     for i in tqdm(range(0, len(records), batch_size), desc="Translating"):
         batch = records[i:i + batch_size]
         
         # Prepare input for the batch
-        batch_input = [{"id": r["id"], "question": r["question"]} for r in batch]
+        batch_input = [{"id": r["id"], "question": r["question"], "solution": r["solution"]} for r in batch]
         input_json = json.dumps(batch_input, ensure_ascii=False, indent=2)
         
         # Build prompt
@@ -95,26 +102,29 @@ def translate_questions_to_zh(
             translations = parse_translation_response(response)
             
             # Create a lookup for translations
-            trans_lookup = {t["id"]: t.get("question_zh", "") for t in translations}
+            trans_lookup = {
+                t["id"]: {
+                    "question_zh": t.get("question_zh", ""),
+                    "solution_zh": t.get("solution_zh", "")
+                } for t in translations
+            }
             
             # Merge translations into original records
             for r in batch:
                 r_copy = r.copy()
-                r_copy["question_zh"] = trans_lookup.get(r["id"], r["question"])
+                r_copy["question_zh"] = trans_lookup.get(r["id"]).get("question_zh")
+                r_copy["solution_zh"] = trans_lookup.get(r["id"]).get("solution_zh")
                 results.append(r_copy)
                 
         except Exception as e:
             print(f"Warning: Translation failed for batch starting at {i}: {e}")
-            # Fallback: copy original question
             for r in batch:
-                r_copy = r.copy()
-                r_copy["question_zh"] = r["question"]  # Fallback
-                results.append(r_copy)
+                failed_ids.append(r["id"])
     
-    return results
+    return results, failed_ids
 
 
-def parse_translation_response(response: str) -> list[dict[str, Any]]:
+def parse_translation_response(response: str) -> List[Dict[str, Any]]:
     """
     Parse the JSON response from the translation model.
     
@@ -122,7 +132,7 @@ def parse_translation_response(response: str) -> list[dict[str, Any]]:
         response: Raw response string from the model.
         
     Returns:
-        List of dictionaries with "id" and "question_zh" fields.
+        List of dictionaries with "id", "question_zh", and "solution_zh" fields.
     """
     # Try to find JSON array in the response
     response = response.strip()
