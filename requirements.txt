@@ -12,6 +12,7 @@ google-generativeai>=0.3.0  # for Gemini-3 (configure GOOGLE_API_KEY)
 # Local model inference (placeholders - install as needed)
 transformers>=4.35.0
 torch>=2.0.0
+torch<=2.8.3
 accelerate>=0.24.0   # uncomment if using HF with device_map
 bitsandbytes>=0.41.0 # uncomment for quantization
 numpy<2.0.0
