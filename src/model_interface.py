@@ -135,13 +135,25 @@ class LocalModel(BaseModel):
         Generate response using the local model.
         """
         self._load_model()
+
+        prompt = [
+            {"role": "user", "content": f"{prompt}"},
+        ]   
+
+        prompt = self._tokenizer.apply_chat_template(
+            prompt,
+            tokenize=False,
+            add_generation_prompt=True,
+            enable_thinking=False # Switches between thinking and non-thinking modes. Default is True.
+        )
         
         inputs = self._tokenizer(
             prompt,
             return_tensors="pt",
-            padding=True,
+            # padding=True,
             truncation=True,
-            max_length=max_tokens
+            max_length=max_tokens,
+            # padding_side="left",
         ).to(self._model.device)
 
         outputs = self._model.generate(
@@ -169,13 +181,27 @@ class LocalModel(BaseModel):
         Generate responses for a batch of prompts.
         """
         self._load_model()
+
+        prompts = [
+            {"role": "user", "content": "Give me a short introduction to large language models."},
+        ]   
+        
+        prompts = self._tokenizer.apply_chat_template(
+            prompts,
+            tokenize=False,
+            add_generation_prompt=True,
+            enable_thinking=False # Switches between thinking and non-thinking modes. Default is True.
+        )
+
+        print(f"Processed Prompts: {prompts}")
         
         inputs = self._tokenizer(
             prompts,
             return_tensors="pt",
-            padding=True,
+            # padding=True,
             truncation=True,
-            max_length=max_tokens
+            max_length=max_tokens,
+            # padding_side="left",
         ).to(self._model.device)
 
         outputs = self._model.generate(

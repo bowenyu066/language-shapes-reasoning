@@ -28,8 +28,8 @@ LOCAL_MODELS = {
         "model_path": "Qwen/Qwen3-8B",
         "backend": "transformers",
         "use_temperature": True,
-        "temperature": 0.6,
-        "top_p": 0.95,
+        "temperature": 0.7,
+        "top_p": 0.8,
         "top_k": 20
     },
     "llama-3.1-8b": {
@@ -55,9 +55,13 @@ EXPERIMENT_CONFIGS = [
     # (language, mode, max_tokens)
     ("en", "direct", 128),
     ("en", "direct", 256),
+    ("en", "direct", 512),
+    ("en", "direct", 1024),
     ("zh", "direct", 128),
     ("zh", "direct", 256),
-    ("zh", "zh_translate_then_solve", 256),
+    ("zh", "direct", 512),
+    ("zh", "direct", 1024),
+    ("zh", "zh_translate_then_solve", 128),
 ]
 
 

@@ -9,32 +9,35 @@ from typing import Optional
 def extract_final_answer(output: str) -> Optional[str]:
     """
     Extract the final answer from model output.
-    
+
     Looks for a line starting with '#### ' and returns the rest stripped.
-    
+    IMPORTANT: Returns the LAST occurrence of #### in the output.
+
     Args:
         output: Raw model output string.
-        
+
     Returns:
         Extracted answer string, or None if not found.
     """
     if not output:
         return None
-    
-    # Look for "Final Answer:" pattern (case insensitive)
-    pattern = r"(?i)^####\s*(.+)"
-    
+
+    # Find the LAST line that starts with ####
+    last_answer = None
+
     for line in output.split('\n'):
-        match = re.search(pattern, line.strip())
-        if match:
-            answer = match.group(1).strip()
+        line = line.strip()
+        # Check if line starts with #### (case insensitive)
+        if line.lower().startswith('####'):
+            # Get everything after ####
+            answer = line[4:].strip()
             # Clean up common formatting issues
             answer = answer.rstrip('.')
             answer = answer.strip('$')
             answer = answer.strip()
-            return answer
-    
-    return None
+            last_answer = answer
+
+    return last_answer
 
 
 def extract_final_answer_batch(outputs: list[str]) -> list[Optional[str]]:

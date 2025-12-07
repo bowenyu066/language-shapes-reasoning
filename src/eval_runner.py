@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from .data_utils import load_jsonl, ensure_dir
 from .model_interface import BaseModel
-from .parsing import extract_final_answer_batch, is_answer_correct_batch
+from .parsing import extract_final_answer, is_answer_correct
 
 
 # Prompt templates
@@ -118,7 +118,6 @@ def run_experiment(
     mode: str,
     max_tokens: int,
     output_csv_path: str,
-    batch_size: int = 10,
     temperature: float = 0.8,
     top_p: float = 0.9,
     top_k: int = 40,
@@ -162,43 +161,41 @@ def run_experiment(
     total_output_length = 0
     
     # Run evaluation
-    for i in tqdm(range(0, len(records), batch_size), desc=f"Evaluating {model.name}"):
-        batch = records[i:i + batch_size]
-        questions = [record["question"] for record in batch]
-        gold_answers = [str(record["answer"]) for record in batch]
-        
+    for record in tqdm(records, desc=f"Evaluating {model.name}"):
+        question = record["question"]
+        gold_answer = str(record["answer"])
+
         # Build prompt
-        prompts = [build_prompt(
+        prompt = build_prompt(
             question=question,
             dataset_name=dataset_name,
             language=language,
             mode=mode,
             prompt_variant=prompt_variant
-        ) for question in questions]
-        
+        )
+
         # Generate response
         try:
-            raw_outputs = model.batch_generate(
-                prompts=prompts,
+            raw_output = model.generate(
+                prompt=prompt,
                 max_tokens=max_tokens,
                 temperature=temperature,
                 top_p=top_p,
                 top_k=top_k
             )
         except Exception as e:
-            print(f"Warning: Generation failed for {[record['id'] for record in batch]}: {e}")
-            raw_outputs = [f"ERROR: {e}"] * len(batch)
-        
+            print(f"Warning: Generation failed for {record['id']}: {e}")
+            raw_output = f"ERROR: {e}"
+
         # Extract and evaluate answer
-        pred_answers = extract_final_answer_batch(raw_outputs)
-        correct = is_answer_correct_batch(pred_answers, gold_answers)
-        
-        if correct:
-            correct_count += 1
-        total_output_length += len(raw_outputs)
-        
+        pred_answer = extract_final_answer(raw_output)
+        correct = is_answer_correct(pred_answer, gold_answer)
+
+        correct_count += int(correct)
+        total_output_length += len(raw_output)
+
         # Record result
-        results.extend({
+        results.append({
             "id": record["id"],
             "model": model.name,
             "dataset": dataset_name,
@@ -210,8 +207,7 @@ def run_experiment(
             "correct": int(correct),
             "raw_output_length": len(raw_output),
             "raw_output": raw_output
-        } for record, raw_output, gold_answer, pred_answer, correct
-        in zip(batch, raw_outputs, gold_answers, pred_answers, correct))
+        })
     
     # Save results to CSV
     if results:
@@ -226,6 +222,8 @@ def run_experiment(
     n = len(results)
     accuracy = correct_count / n if n > 0 else 0.0
     avg_output_length = total_output_length / n if n > 0 else 0.0
+
+    print(f"Correct: {correct_count}; Total: {n}")
     
     summary = {
         "model": model.name,
