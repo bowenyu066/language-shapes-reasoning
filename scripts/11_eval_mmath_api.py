@@ -49,10 +49,14 @@ API_MODELS = {
 # Experiment configurations
 EXPERIMENT_CONFIGS = [
     # (language, mode, max_tokens)
+    ("en", "direct", 128),
     ("en", "direct", 256),
     ("en", "direct", 512),
+    ("en", "direct", 1024),
+    ("zh", "direct", 128),
     ("zh", "direct", 256),
     ("zh", "direct", 512),
+    ("zh", "direct", 1024),
 ]
 
 
@@ -198,6 +202,12 @@ def main():
         type=str,
         choices=["en", "zh"],
         help="Specific language to evaluate (default: all)"
+    )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        choices=["direct"],
+        help="Specific mode to evaluate (default: all)"
     )
     parser.add_argument(
         "--max-tokens",
