@@ -13,6 +13,7 @@ Usage:
 import argparse
 import os
 import sys
+import json
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -44,14 +45,14 @@ API_MODELS = {
 # Experiment configurations
 EXPERIMENT_CONFIGS = [
     # (language, mode, max_tokens)
-    ("en", "direct", 128),
-    ("en", "direct", 256),
-    ("en", "direct", 512),
-    ("en", "direct", 1024),
-    ("zh", "direct", 128),
-    ("zh", "direct", 256),
-    ("zh", "direct", 512),
-    ("zh", "direct", 1024),
+    # ("en", "direct", 128),
+    # ("en", "direct", 256),
+    # ("en", "direct", 512),
+    # ("en", "direct", 1024),
+    # ("zh", "direct", 128),
+    # ("zh", "direct", 256),
+    # ("zh", "direct", 512),
+    ("zh", "direct", 4096),
 ]
 
 
@@ -274,6 +275,12 @@ def main():
     for s in summaries:
         print(f"{s['model']} | {s['language']} | {s['mode']} | "
               f"acc={s['accuracy']:.4f} ({s['correct']}/{s['n']})")
+        with open(os.path.join(
+            args.output_dir,
+            f"summary_{s['model']}_{s['language']}_{s['mode']}_{s['max_tokens']}.json"),
+            "w",
+        ) as f:
+            json.dump(s, f, indent=2)
     
     print("\n" + "=" * 60)
     print("Evaluation complete!")

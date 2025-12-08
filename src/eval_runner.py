@@ -157,6 +157,8 @@ def run_experiment(
     ensure_dir(os.path.dirname(output_csv_path))
     
     results = []
+    output_lengths = []
+    valid_count = 0
     correct_count = 0
     total_output_length = 0
     
@@ -191,8 +193,10 @@ def run_experiment(
         pred_answer = extract_final_answer(raw_output)
         correct = is_answer_correct(pred_answer, gold_answer)
 
+        valid_count += int(pred_answer is not None)
         correct_count += int(correct)
         total_output_length += len(raw_output)
+        output_lengths.append(len(raw_output))
 
         # Record result
         results.append({
@@ -204,6 +208,7 @@ def run_experiment(
             "max_tokens": max_tokens,
             "gold": gold_answer,
             "pred": pred_answer,
+            "valid": int(pred_answer is not None),
             "correct": int(correct),
             "raw_output_length": len(raw_output),
             "raw_output": raw_output
@@ -222,8 +227,9 @@ def run_experiment(
     n = len(results)
     accuracy = correct_count / n if n > 0 else 0.0
     avg_output_length = total_output_length / n if n > 0 else 0.0
+    valid_accuracy = correct_count / valid_count if valid_count > 0 else 0.0
 
-    print(f"Correct: {correct_count}; Total: {n}")
+    print(f"Valid count: {valid_count}; Correct: {correct_count}; Total: {n}")
     
     summary = {
         "model": model.name,
@@ -235,10 +241,14 @@ def run_experiment(
         "correct": correct_count,
         "accuracy": accuracy,
         "avg_raw_output_length": avg_output_length,
-        "timestamp": datetime.utcnow().isoformat() + "Z"
+        "valid_count": valid_count,
+        "valid_accuracy": valid_accuracy,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "output_lengths": output_lengths
     }
     
     print(f"Accuracy: {accuracy:.4f} ({correct_count}/{n})")
+    print(f"Valid accuracy: {valid_accuracy:.4f} ({correct_count}/{valid_count})")
     
     return summary
 
