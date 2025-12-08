@@ -53,7 +53,13 @@ conda activate lang-shapes-reasoning
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Other than the dependencies in requirements.txt, several additional packages may be required for API models (e.g., Gemini-3) and local models
+pip install -q -U google-genai                  # for Gemini-3
+pip install flash-attn --no-build-isolation     # for local models
 ```
+
+> Note: you may encounter some issues with the installation of flash-attn. If so, you can try to install it from source: https://github.com/Dao-AILab/flash-attention
 
 ## Configuration
 
