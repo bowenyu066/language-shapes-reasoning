@@ -26,24 +26,19 @@ from src.data_utils import ensure_dir, load_jsonl, save_jsonl
 API_MODELS = {
     "chatgpt-5.1": {
         "type": "openai",
-        "model_name": "gpt-5.1",  # Placeholder - update when available
+        "model_name": "gpt-5.1",
         "env_key": "OPENAI_API_KEY"
     },
     "gemini-3": {
         "type": "gemini",
-        "model_name": "gemini-3-pro",  # Placeholder - update when available
+        "model_name": "gemini-3-pro-preview",
         "env_key": "GOOGLE_API_KEY"
     },
-    "deepseek-r1": {
+    "deepseek-v3.2": {
         "type": "deepseek",
         "model_name": "deepseek-reasoner",
         "env_key": "DEEPSEEK_API_KEY"
     },
-    "deepseek-r2": {
-        "type": "deepseek",
-        "model_name": "deepseek-r2",
-        "env_key": "DEEPSEEK_API_KEY"
-    }
 }
 
 # Experiment configurations
@@ -132,7 +127,7 @@ def run_all_experiments(
     """
     ensure_dir(output_dir)
     
-    mmath_path = "data/processed/mmath_multilingual.jsonl"
+    mmath_path = "data/processed/mmath"
     
     if not os.path.exists(mmath_path):
         print(f"Error: Dataset not found: {mmath_path}")
@@ -154,8 +149,7 @@ def run_all_experiments(
         
         for language, mode, max_tokens in configs:
             # Create filtered dataset for this language
-            filtered_path = f"data/processed/mmath_{language}_temp.jsonl"
-            filter_dataset_by_language(mmath_path, language, filtered_path)
+            filtered_path = f"data/processed/mmath/mmath_{language}.jsonl"
             
             output_path = generate_output_path(
                 output_dir=output_dir,

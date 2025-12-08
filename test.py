@@ -1,4 +1,5 @@
-from datasets import load_dataset
+from src.model_interface import GeminiModel
 
-dataset = load_dataset("openai/gsm8k", "main")
-print(len(dataset["train"]))
+model = GeminiModel("Gemini-3-Pro-Preview", "gemini-3-pro-preview")
+
+print(model.generate("Hello, how are you?"))
