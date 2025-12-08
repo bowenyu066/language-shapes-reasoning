@@ -115,7 +115,10 @@ def run_all_experiments(
     models: list[str],
     configs: list[tuple],
     output_dir: str,
-    limit: int | None = None
+    limit: int | None = None,
+    use_batch: bool = False,
+    batch_poll_interval: int = 30,
+    batch_chunk_size: int = 50,
 ):
     """
     Run all experiment configurations.
@@ -125,6 +128,9 @@ def run_all_experiments(
         configs: List of (language, mode, max_tokens) tuples.
         output_dir: Directory to save results.
         limit: Optional limit on examples per experiment.
+        use_batch: If True, use Gemini Batch API for gemini models.
+        batch_poll_interval: Seconds between batch status checks.
+        batch_chunk_size: Split batch into chunks for progress updates.
     """
     ensure_dir(output_dir)
     
@@ -170,7 +176,10 @@ def run_all_experiments(
                     mode=mode,
                     max_tokens=max_tokens,
                     output_csv_path=output_path,
-                    limit=limit
+                    limit=limit,
+                    use_batch=use_batch,
+                    batch_poll_interval=batch_poll_interval,
+                    batch_chunk_size=batch_chunk_size,
                 )
                 summaries.append(summary)
             except Exception as e:
@@ -222,6 +231,23 @@ def main():
         default="results/mmath",
         help="Output directory for results"
     )
+    parser.add_argument(
+        "--batch",
+        action="store_true",
+        help="Use Gemini Batch API (50%% cost, async) for gemini-3 model"
+    )
+    parser.add_argument(
+        "--batch-poll-interval",
+        type=int,
+        default=30,
+        help="Seconds between batch status checks (default: 30)"
+    )
+    parser.add_argument(
+        "--batch-chunk-size",
+        type=int,
+        default=50,
+        help="Split batch into chunks of this size for progress updates (default: 50, 0=no chunking)"
+    )
     
     args = parser.parse_args()
     
@@ -251,6 +277,9 @@ def main():
     print(f"Output: {args.output_dir}")
     if args.limit:
         print(f"Limit: {args.limit} examples per experiment")
+    if args.batch:
+        chunk_info = f"chunk={args.batch_chunk_size}" if args.batch_chunk_size > 0 else "no chunking"
+        print(f"Batch Mode: ENABLED (Gemini only, {chunk_info}, poll={args.batch_poll_interval}s)")
     
     # Check API keys
     print("\nAPI Key Status:")
@@ -265,7 +294,10 @@ def main():
         models=models,
         configs=configs,
         output_dir=args.output_dir,
-        limit=args.limit
+        limit=args.limit,
+        use_batch=args.batch,
+        batch_poll_interval=args.batch_poll_interval,
+        batch_chunk_size=args.batch_chunk_size,
     )
     
     # Print summary

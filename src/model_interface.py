@@ -367,8 +367,211 @@ class GeminiModel(BaseModel):
         top_p: Optional[float] = None,
         top_k: Optional[int] = None
     ) -> list[str]:
-        """Generate responses for a batch of prompts."""
+        """Generate responses for a batch of prompts (sequential)."""
         return [self.generate(prompt, max_token, temperature, top_p, top_k) for prompt, max_token in zip(prompts, max_tokens)]
+
+    # ==================== Async Batch API Methods ====================
+    # These methods use Google's Batch API for 50% cost savings and
+    # asynchronous processing of large batches.
+    
+    def submit_batch_job(
+        self,
+        prompts: list[str],
+        max_tokens: int = 4096,
+        temperature: float = 1.0,
+        display_name: Optional[str] = None,
+    ) -> str:
+        """
+        Submit a batch job to Gemini Batch API.
+        
+        Args:
+            prompts: List of prompts to process.
+            max_tokens: Maximum tokens per response.
+            temperature: Sampling temperature.
+            display_name: Optional name for the batch job.
+            
+        Returns:
+            Job name (string) for polling status.
+        """
+        client = self._get_client()
+        from google.genai import types
+        
+        # Build inline requests (batch API doesn't support generation_config per-request)
+        inline_requests = [
+            {'contents': [{'parts': [{'text': prompt}], 'role': 'user'}]}
+            for prompt in prompts
+        ]
+        
+        if display_name is None:
+            display_name = f"batch-{len(prompts)}-prompts"
+        
+        # Create batch job config with generation settings
+        batch_config = types.CreateBatchJobConfig(
+            display_name=display_name,
+        )
+        
+        batch_job = client.batches.create(
+            model=f"models/{self.model_name}",
+            src=inline_requests,
+            config=batch_config,
+        )
+        return batch_job.name
+
+    def get_batch_status(self, job_name: str) -> dict:
+        """
+        Get the current status of a batch job.
+        
+        Args:
+            job_name: The batch job name returned by submit_batch_job.
+            
+        Returns:
+            Dict with 'state', 'name', and optionally 'error' keys.
+        """
+        client = self._get_client()
+        batch_job = client.batches.get(name=job_name)
+        
+        result = {
+            'name': batch_job.name,
+            'state': batch_job.state.name,
+        }
+        if hasattr(batch_job, 'error') and batch_job.error:
+            result['error'] = str(batch_job.error)
+        return result
+
+    def poll_batch_job(
+        self,
+        job_name: str,
+        poll_interval: int = 30,
+        verbose: bool = True
+    ):
+        """
+        Poll until batch job completes.
+        
+        Args:
+            job_name: The batch job name returned by submit_batch_job.
+            poll_interval: Seconds between status checks.
+            verbose: Whether to print status updates.
+            
+        Returns:
+            The completed batch job object.
+        """
+        import time
+        client = self._get_client()
+        
+        completed_states = {
+            'JOB_STATE_SUCCEEDED',
+            'JOB_STATE_FAILED',
+            'JOB_STATE_CANCELLED',
+            'JOB_STATE_EXPIRED',
+        }
+        
+        batch_job = client.batches.get(name=job_name)
+        poll_count = 0
+        while batch_job.state.name not in completed_states:
+            poll_count += 1
+            if verbose:
+                elapsed = poll_count * poll_interval
+                elapsed_str = f"{elapsed // 60}m {elapsed % 60}s" if elapsed >= 60 else f"{elapsed}s"
+                # Use \r to overwrite the same line
+                print(f"\r[Batch] {batch_job.state.name} ... waiting ({elapsed_str} elapsed)    ", end="", flush=True)
+            time.sleep(poll_interval)
+            batch_job = client.batches.get(name=job_name)
+        
+        if verbose:
+            # Print newline to end the \r line, then show completion
+            print(f"\r[Batch] Completed: {batch_job.state.name}                                    ")
+        
+        return batch_job
+
+    def retrieve_batch_results(self, batch_job) -> list[str]:
+        """
+        Extract text responses from a completed batch job.
+        
+        Args:
+            batch_job: The batch job object returned by poll_batch_job.
+            
+        Returns:
+            List of response texts (or error messages for failed requests).
+        """
+        results = []
+        
+        if batch_job.state.name != 'JOB_STATE_SUCCEEDED':
+            raise RuntimeError(
+                f"Batch job did not succeed. State: {batch_job.state.name}, "
+                f"Error: {getattr(batch_job, 'error', 'N/A')}"
+            )
+        
+        # Handle inline responses
+        if batch_job.dest and batch_job.dest.inlined_responses:
+            for resp in batch_job.dest.inlined_responses:
+                if resp.response:
+                    try:
+                        results.append(resp.response.text or "")
+                    except AttributeError:
+                        results.append(str(resp.response))
+                elif resp.error:
+                    results.append(f"[ERROR] {resp.error}")
+                else:
+                    results.append("")
+        # Handle file-based responses
+        elif batch_job.dest and batch_job.dest.file_name:
+            client = self._get_client()
+            file_content = client.files.download(file=batch_job.dest.file_name)
+            import json
+            for line in file_content.decode('utf-8').strip().split('\n'):
+                if line:
+                    data = json.loads(line)
+                    if 'response' in data:
+                        # Extract text from response
+                        try:
+                            text = data['response']['candidates'][0]['content']['parts'][0]['text']
+                            results.append(text)
+                        except (KeyError, IndexError):
+                            results.append(str(data.get('response', '')))
+                    elif 'error' in data:
+                        results.append(f"[ERROR] {data['error']}")
+        else:
+            raise RuntimeError("No results found in batch job (neither inline nor file).")
+        
+        return results
+
+    def batch_generate_async(
+        self,
+        prompts: list[str],
+        max_tokens: int = 4096,
+        temperature: float = 1.0,
+        poll_interval: int = 30,
+        verbose: bool = True,
+    ) -> list[str]:
+        """
+        Full async batch workflow: submit, poll, retrieve.
+        
+        This uses Google's Batch API which offers:
+        - 50% cost savings compared to regular API
+        - Asynchronous processing for large batches
+        - Target turnaround: 24 hours (usually much faster)
+        
+        Args:
+            prompts: List of prompts to process.
+            max_tokens: Maximum tokens per response.
+            temperature: Sampling temperature.
+            poll_interval: Seconds between status checks.
+            verbose: Whether to print progress updates.
+            
+        Returns:
+            List of generated responses (same order as prompts).
+        """
+        if verbose:
+            print(f"[Batch] Submitting {len(prompts)} prompts to Gemini Batch API...")
+        
+        job_name = self.submit_batch_job(prompts, max_tokens, temperature)
+        
+        if verbose:
+            print(f"[Batch] Job submitted: {job_name}")
+        
+        batch_job = self.poll_batch_job(job_name, poll_interval, verbose)
+        
+        return self.retrieve_batch_results(batch_job)
 
 
 class DeepSeekAPIModel(BaseModel):
@@ -382,7 +585,7 @@ class DeepSeekAPIModel(BaseModel):
         name: str,
         model_name: str = "deepseek-reasoner",
         api_key: Optional[str] = None,
-        api_base: str = "https://api.deepseek.com",
+        api_base: str = "https://api.deepseek.com/v1",
         use_temperature: bool = False,
     ):
         """
@@ -426,13 +629,13 @@ class DeepSeekAPIModel(BaseModel):
         client = self._get_client()
         
         try:
-            response = client.responses.create(
+            response = client.chat.completions.create(
                 model=self.model_name,
-                input=prompt,
-                max_output_tokens=max_tokens,
+                messages=[{"role": "user", "content": prompt}],
+                max_completion_tokens=max_tokens,
                 temperature=temperature if self.use_temperature else None,
             )
-            return response.output_text
+            return response.choices[0].message.content
         except Exception as e:
             raise RuntimeError(f"DeepSeek API call failed: {e}")
 
