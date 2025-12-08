@@ -1,0 +1,22 @@
+id,model,dataset,language,mode,max_tokens,gold,pred,correct,raw_output_length,raw_output
+gsm8k_test_000000,qwen3-8b,gsm8k,en,direct,1024,18,18,1,766,"user
+You are a careful math tutor. Solve the following problem step by step.
+At the end, output ONLY the final numeric answer on a line starting with:
+#### <number>
+
+Problem:
+Janet’s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers' market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers' market?
+assistant
+<think>
+
+</think>
+
+1. Janet's ducks lay 16 eggs per day.  
+2. She eats 3 eggs for breakfast.  
+3. She uses 4 eggs to bake muffins.  
+4. Total eggs used: $3 + 4 = 7$.  
+5. Remaining eggs: $16 - 7 = 9$.  
+6. She sells the remaining eggs at $2 per egg.  
+7. Daily earnings: $9 \times 2 = 18$.  
+
+#### 18"

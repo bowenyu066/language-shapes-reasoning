@@ -1,0 +1,129 @@
+id,model,dataset,language,mode,max_tokens,gold,pred,correct,raw_output_length,raw_output
+gsm8k_test_000000,qwen3-8b,gsm8k,en,direct,2048,18,18,1,1113,"user
+You are a careful math tutor. Solve the following problem step by step.
+At the end, output ONLY the final numeric answer on a line starting with:
+#### <number>
+
+Problem:
+Janet’s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers' market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers' market?
+assistant
+<think>
+
+</think>
+
+To determine how much Janet makes every day at the farmers' market, let's break the problem down step by step.
+
+### Step 1: Total number of eggs laid per day
+Janet’s ducks lay:
+$$
+16 \text{ eggs/day}
+$$
+
+### Step 2: Eggs used by Janet
+Janet eats 3 eggs for breakfast:
+$$
+3 \text{ eggs}
+$$
+
+### Step 3: Eggs used for muffins
+She uses 4 eggs to bake muffins:
+$$
+4 \text{ eggs}
+$$
+
+### Step 4: Total eggs used
+$$
+3 + 4 = 7 \text{ eggs}
+$$
+
+### Step 5: Eggs left for sale
+$$
+16 - 7 = 9 \text{ eggs}
+$$
+
+### Step 6: Revenue from selling eggs
+She sells each egg for $2:
+$$
+9 \times 2 = 18 \text{ dollars}
+$$
+
+### Final Answer:
+#### 18"
+gsm8k_test_000001,qwen3-8b,gsm8k,en,direct,2048,3,3,1,703,"user
+You are a careful math tutor. Solve the following problem step by step.
+At the end, output ONLY the final numeric answer on a line starting with:
+#### <number>
+
+Problem:
+A robe takes 2 bolts of blue fiber and half that much white fiber.  How many bolts in total does it take?
+assistant
+<think>
+
+</think>
+
+To solve the problem, we need to calculate the total number of bolts of fiber required to make one robe.
+
+1. The robe requires 2 bolts of blue fiber.
+2. It also requires half that much white fiber. Half of 2 bolts is:
+   $$
+   \frac{2}{2} = 1 \text{ bolt of white fiber}
+   $$
+
+3. To find the total number of bolts, add the bolts of blue fiber and white fiber:
+   $$
+   2 + 1 = 3
+   $$
+
+#### 3"
+gsm8k_test_000002,qwen3-8b,gsm8k,en,direct,2048,70000,70000,1,1242,"user
+You are a careful math tutor. Solve the following problem step by step.
+At the end, output ONLY the final numeric answer on a line starting with:
+#### <number>
+
+Problem:
+Josh decides to try flipping a house.  He buys a house for $80,000 and then puts in $50,000 in repairs.  This increased the value of the house by 150%.  How much profit did he make?
+assistant
+<think>
+
+</think>
+
+To determine Josh's profit, we need to calculate the total cost and the selling price of the house, then find the difference between the selling price and the total cost.
+
+---
+
+### Step 1: Calculate the total cost
+Josh initially buys the house for $80,000 and spends $50,000 on repairs.
+
+$$
+\text{Total cost} = 80,000 + 50,000 = 130,000
+$$
+
+---
+
+### Step 2: Calculate the increase in value
+The house's value increased by 150%. This means the value increased by:
+
+$$
+150\% \text{ of } 80,000 = 1.5 \times 80,000 = 120,000
+$$
+
+---
+
+### Step 3: Calculate the final selling price
+$$
+\text{Selling price} = \text{Original value} + \text{Increase in value} = 80,000 + 120,000 = 200,000
+$$
+
+---
+
+### Step 4: Calculate the profit
+$$
+\text{Profit} = \text{Selling price} - \text{Total cost} = 200,000 - 130,000 = 70,000
+$$
+
+---
+
+#### 70000
+
+#### <number>
+#### 70000"

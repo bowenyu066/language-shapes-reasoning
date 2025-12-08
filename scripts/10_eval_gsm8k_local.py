@@ -36,18 +36,18 @@ LOCAL_MODELS = {
         "model_path": "meta-llama/Llama-3.1-8B-Instruct",
         "backend": "transformers",
         "use_temperature": True,
-        "temperature": 0.6,
-        "top_p": 0.95,
+        "temperature": 0.3,
+        "top_p": 0.9,
         "top_k": 20
     },
-    "deepseekmath-7b": {
-        "model_path": "deepseek-ai/deepseek-math-7b-instruct",
-        "backend": "transformers",
-        "use_temperature": True,
-        "temperature": 0.6,
-        "top_p": 0.95,
-        "top_k": 20
-    }
+    # "deepseekmath-7b": {
+    #     "model_path": "deepseek-ai/deepseek-math-7b-instruct",
+    #     "backend": "transformers",
+    #     "use_temperature": True,
+    #     "temperature": 0.6,
+    #     "top_p": 0.95,
+    #     "top_k": 20
+    # }
 }
 
 # Experiment configurations
@@ -57,11 +57,17 @@ EXPERIMENT_CONFIGS = [
     ("en", "direct", 256),
     ("en", "direct", 512),
     ("en", "direct", 1024),
+    ("en", "direct", 4096),
     ("zh", "direct", 128),
     ("zh", "direct", 256),
     ("zh", "direct", 512),
     ("zh", "direct", 1024),
+    ("zh", "direct", 4096),
     ("zh", "zh_translate_then_solve", 128),
+    ("zh", "zh_translate_then_solve", 256),
+    ("zh", "zh_translate_then_solve", 512),
+    ("zh", "zh_translate_then_solve", 1024),
+    ("zh", "zh_translate_then_solve", 4096),
 ]
 
 
@@ -241,10 +247,27 @@ def main():
     for s in summaries:
         print(f"{s['model']} | {s['language']} | {s['mode']} | "
               f"acc={s['accuracy']:.4f} ({s['correct']}/{s['n']})")
-    
+
+    # Save summary to text file
+    summary_path = os.path.join(args.output_dir, "summary.txt")
+    with open(summary_path, "a") as f:
+        f.write("=" * 60 + "\n")
+        f.write("GSM8K Evaluation Results Summary\n")
+        f.write("=" * 60 + "\n\n")
+
+        for s, (_, _, max_tok) in zip(summaries, EXPERIMENT_CONFIGS):
+            f.write(f"Max Tokens={max_tok} | {s['model']} | {s['language']} | {s['mode']} | "
+                   f"acc={s['accuracy']:.4f} ({s['correct']}/{s['n']})\n")
+
+        f.write("\n" + "=" * 60 + "\n")
+        f.write("Evaluation complete!\n")
+        f.write(f"Results saved to: {args.output_dir}\n")
+        f.write("=" * 60 + "\n")
+
     print("\n" + "=" * 60)
     print("Evaluation complete!")
     print(f"Results saved to: {args.output_dir}")
+    print(f"Summary saved to: {summary_path}")
     print("=" * 60)
 
 

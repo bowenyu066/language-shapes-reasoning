@@ -1,0 +1,42 @@
+============================================================
+GSM8K Evaluation Results Summary
+============================================================
+
+Max Tokens=128 | llama-3.1-8b | zh | zh_translate_then_solve | acc=0.0015 (2/1319)
+Max Tokens=256 | llama-3.1-8b | zh | zh_translate_then_solve | acc=0.3897 (514/1319)
+Max Tokens=512 | llama-3.1-8b | zh | zh_translate_then_solve | acc=0.4230 (558/1319)
+Max Tokens=1024 | llama-3.1-8b | zh | zh_translate_then_solve | acc=0.4397 (580/1319)
+Max Tokens=4096 | llama-3.1-8b | zh | zh_translate_then_solve | acc=0.4367 (576/1319)
+
+============================================================
+Evaluation complete!
+Results saved to: results/gsm8k
+============================================================
+============================================================
+GSM8K Evaluation Results Summary
+============================================================
+
+Max Tokens=128 | llama-3.1-8b | zh | direct | acc=0.0682 (90/1319)
+Max Tokens=256 | llama-3.1-8b | zh | direct | acc=0.4981 (657/1319)
+Max Tokens=512 | llama-3.1-8b | zh | direct | acc=0.5239 (691/1319)
+Max Tokens=1024 | llama-3.1-8b | zh | direct | acc=0.5155 (680/1319)
+Max Tokens=4096 | llama-3.1-8b | zh | direct | acc=0.5284 (697/1319)
+
+============================================================
+Evaluation complete!
+Results saved to: results/gsm8k
+============================================================
+============================================================
+GSM8K Evaluation Results Summary
+============================================================
+
+Max Tokens=128 | llama-3.1-8b | en | direct | acc=0.0462 (61/1319)
+Max Tokens=256 | llama-3.1-8b | en | direct | acc=0.5989 (790/1319)
+Max Tokens=512 | llama-3.1-8b | en | direct | acc=0.8036 (1060/1319)
+Max Tokens=1024 | llama-3.1-8b | en | direct | acc=0.7961 (1050/1319)
+Max Tokens=4096 | llama-3.1-8b | en | direct | acc=0.8029 (1059/1319)
+
+============================================================
+Evaluation complete!
+Results saved to: results/gsm8k
+============================================================
