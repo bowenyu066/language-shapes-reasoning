@@ -286,6 +286,7 @@ def run_sft_training(
     train_dataset,
     config: Dict,
     output_dir: str,
+    run_name: str,
 ):
     """
     Run SFT training with the given configuration.
@@ -296,6 +297,7 @@ def run_sft_training(
         train_dataset: Training dataset
         config: Training configuration
         output_dir: Directory to save checkpoints
+        run_name: Name for wandb run
     """
     
     train_cfg = config["training"]
@@ -335,7 +337,7 @@ def run_sft_training(
         fp16=train_cfg.get("fp16", False),
         report_to="wandb" if wandb_cfg.get("enabled", False) else "none",
         disable_tqdm=False,
-        run_name=f"sft-{train_cfg.get('run_name', 'sft')}",
+        run_name=run_name,
     )
     
     # Create trainer
