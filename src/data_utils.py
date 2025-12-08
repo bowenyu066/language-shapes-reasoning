@@ -5,7 +5,7 @@ Data utilities for loading and saving JSONL files.
 import json
 import os
 from pathlib import Path
-from typing import Any
+from typing import *
 
 
 def load_jsonl(path: str) -> list[dict[str, Any]]:
@@ -83,3 +83,29 @@ def group_by_problem_id(records: list[dict]) -> dict[str, list[dict]]:
             grouped[pid] = []
         grouped[pid].append(r)
     return grouped
+
+
+def load_gsm8k_sft_data(language: str, limit: int = None) -> List[Dict]:
+    """
+    Load processed GSM8K training data for SFT.
+    
+    Args:
+        language: "en" or "zh"
+        limit: Optional limit on number of samples
+        
+    Returns:
+        List of training examples
+    """
+    data_path = f"data/processed/gsm8k/gsm8k_{language}_train.jsonl"
+    if not os.path.exists(data_path):
+        raise FileNotFoundError(
+            f"Data not found at {data_path}. "
+            "Please run: python scripts/01_process_gsm8k.py first"
+        )
+    
+    records = load_jsonl(data_path)
+    if limit:
+        records = records[:limit]
+    
+    print(f"Loaded {len(records)} {language.upper()} training samples")
+    return records
