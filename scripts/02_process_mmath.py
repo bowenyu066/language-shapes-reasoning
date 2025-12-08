@@ -3,81 +3,90 @@
 Process MMATH raw data into standardized multilingual format.
 
 This script:
-1. Loads data/raw/mmath_raw.jsonl
+1. Loads data/raw/mmath/{language}.json
 2. Converts to standardized format with separate language entries
-3. Saves to data/processed/mmath_multilingual.jsonl
+3. Saves to data/processed/mmath/mmath_{language}.jsonl
 
 Usage:
     python scripts/02_process_mmath.py
 """
 
+import json
 import os
 import sys
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.data_utils import load_jsonl, save_jsonl, ensure_dir
+from src.data_utils import save_jsonl, ensure_dir
 
 
-def process_mmath_record(raw_record: dict) -> list[dict]:
-    """
-    Convert a raw MMATH record to standardized format.
-    
-    Raw format has question_en, question_zh, etc.
-    Output format has separate records per language.
-    
-    Args:
-        raw_record: Raw MMATH record.
-        
-    Returns:
-        List of processed records (one per language).
-    """
-    problem_id = raw_record.get("problem_id", "unknown")
-    answer = str(raw_record.get("answer", ""))
-    subdomain = raw_record.get("subdomain", "general")
-    difficulty = raw_record.get("difficulty", "unknown")
-    
-    # Determine answer type
-    answer_type = "int"
+# Languages available in MMATH dataset
+MMATH_LANGUAGES = ["ar", "en", "es", "fr", "ja", "ko", "pt", "th", "vi", "zh"]
+
+
+def load_json(path: str) -> list[dict]:
+    """Load a JSON array file."""
+    with open(path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def get_answer_type(answer: str) -> str:
+    """Determine the type of answer (int, float, or expression)."""
     try:
         float(answer)
         if "." in answer:
-            answer_type = "float"
+            return "float"
+        return "int"
     except ValueError:
-        answer_type = "expression"  # For symbolic answers like "10√3"
+        return "expression"
+
+
+def process_mmath_record(raw_record: dict) -> dict:
+    """
+    Convert a raw MMATH record to standardized format.
     
-    processed = []
+    Raw format (per-language JSON file):
+        - question: The question text
+        - answer: The answer
+        - data_source: Source dataset (e.g., "AIME2024")
+        - data_source_id: ID within that source
+        - lang: Language code
+        - gid: Global ID
     
-    # Process each language
-    language_fields = {
-        "en": "question_en",
-        "zh": "question_zh",
-        "de": "question_de",
-        "fr": "question_fr",
-        "es": "question_es",
-        "ru": "question_ru",
-        "ja": "question_ja",
+    Output format:
+        - id: Unique identifier (mmath_{gid}_{lang})
+        - gid: Global problem ID (for cross-language matching)
+        - source: "mmath"
+        - language: Language code
+        - question: Question text
+        - answer: Answer string
+        - answer_type: int/float/expression
+        - meta: Additional metadata
+    
+    Args:
+        raw_record: Raw MMATH record from JSON file.
+        
+    Returns:
+        Processed record in standardized format.
+    """
+    gid = raw_record.get("gid", 0)
+    lang = raw_record.get("lang", "unknown")
+    answer = str(raw_record.get("answer", ""))
+    
+    return {
+        "id": f"mmath_{gid}_{lang}",
+        "gid": gid,
+        "source": "mmath",
+        "language": lang,
+        "question": raw_record.get("question", ""),
+        "answer": answer,
+        "answer_type": get_answer_type(answer),
+        "meta": {
+            "data_source": raw_record.get("data_source", ""),
+            "data_source_id": raw_record.get("data_source_id", 0)
+        }
     }
-    
-    for lang, field in language_fields.items():
-        if field in raw_record and raw_record[field]:
-            processed.append({
-                "id": f"mmath_{problem_id}_{lang}",
-                "problem_id": problem_id,
-                "source": "mmath",
-                "level": "hard",
-                "language": lang,
-                "question": raw_record[field],
-                "answer": answer,
-                "answer_type": answer_type,
-                "meta": {
-                    "subdomain": subdomain,
-                    "difficulty": difficulty
-                }
-            })
-    
-    return processed
 
 
 def main():
@@ -87,42 +96,53 @@ def main():
     print("=" * 60)
     print()
     
-    # Paths
-    raw_path = "data/raw/mmath_raw.jsonl"
-    output_path = "data/processed/mmath_multilingual.jsonl"
+    raw_dir = "data/raw/mmath"
+    output_dir = "data/processed/mmath"
     
-    # Check if raw data exists
-    if not os.path.exists(raw_path):
-        print(f"Error: Raw data not found at {raw_path}")
+    # Check if raw directory exists
+    if not os.path.exists(raw_dir):
+        print(f"Error: Raw data directory not found at {raw_dir}")
         print("Please run: python scripts/00_download_data.py first")
         sys.exit(1)
     
-    # Load raw data
-    print(f"Loading raw data from {raw_path}...")
-    raw_records = load_jsonl(raw_path)
-    print(f"  Loaded {len(raw_records)} raw records")
+    # Ensure output directory exists
+    ensure_dir(output_dir)
     
-    # Process records
-    print("Processing records...")
-    processed_records = []
-    for raw_record in raw_records:
-        processed_records.extend(process_mmath_record(raw_record))
-    
-    # Count by language
+    total_records = 0
     lang_counts = {}
-    for r in processed_records:
-        lang = r["language"]
-        lang_counts[lang] = lang_counts.get(lang, 0) + 1
     
-    print(f"  Created {len(processed_records)} processed records")
+    # Process each language file
+    for lang in MMATH_LANGUAGES:
+        raw_path = os.path.join(raw_dir, f"{lang}.json")
+        output_path = os.path.join(output_dir, f"mmath_{lang}.jsonl")
+        
+        if not os.path.exists(raw_path):
+            print(f"  Skipping {lang}: {raw_path} not found")
+            continue
+        
+        # Load raw data (JSON array)
+        print(f"Processing {lang}...")
+        raw_records = load_json(raw_path)
+        print(f"  Loaded {len(raw_records)} raw records from {raw_path}")
+        
+        # Process records
+        processed_records = [process_mmath_record(r) for r in raw_records]
+        
+        # Save to JSONL
+        save_jsonl(output_path, processed_records)
+        print(f"  Saved {len(processed_records)} records to {output_path}")
+        
+        lang_counts[lang] = len(processed_records)
+        total_records += len(processed_records)
+    
+    # Summary
+    print()
+    print("-" * 60)
+    print("Summary:")
+    print(f"  Total records processed: {total_records}")
     print("  By language:")
     for lang, count in sorted(lang_counts.items()):
         print(f"    {lang}: {count}")
-    
-    # Save processed file
-    ensure_dir("data/processed")
-    save_jsonl(output_path, processed_records)
-    print(f"  Saved to {output_path}")
     
     print()
     print("=" * 60)

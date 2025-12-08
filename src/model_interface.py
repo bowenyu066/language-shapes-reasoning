@@ -267,6 +267,8 @@ class OpenAIChatModel(BaseModel):
         prompt: str,
         max_tokens: Optional[int] = None,
         temperature: float = 0.8,       # Note: need testing
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None
     ) -> str:
         """Generate response using OpenAI API."""
         client = self._get_client()
@@ -282,17 +284,28 @@ class OpenAIChatModel(BaseModel):
         except Exception as e:
             raise RuntimeError(f"OpenAI API call failed: {e}")
 
+    def batch_generate(
+        self,
+        prompts: list[str],
+        max_tokens: Optional[int] = None,
+        temperature: float = 0.8,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None
+    ) -> list[str]:
+        """Generate responses for a batch of prompts using OpenAI API."""
+        return [self.generate(prompt, max_token, temperature, top_p, top_k) for prompt, max_token in zip(prompts, max_tokens)]
+
 
 class GeminiModel(BaseModel):
     """
     Google Gemini API model wrapper.
-    Supports: Gemini-3 (or other Gemini models)
+    Supports: gemini-3-pro (or other Gemini models, such as gemini-2.5-pro)
     """
     
     def __init__(
         self,
         name: str,
-        model_name: str = "gemini-pro",
+        model_name: str = "gemini-3-pro-preview",
         api_key: Optional[str] = None
     ):
         """
@@ -306,51 +319,62 @@ class GeminiModel(BaseModel):
         self.name = name
         self.model_name = model_name
         self.api_key = api_key or os.environ.get("GOOGLE_API_KEY")
-        self._model = None
+        self._client = None
         
-    def _get_model(self):
+    def _get_client(self):
         """Lazy initialization of Gemini model."""
-        if self._model is None:
+        if self._client is None:
             try:
-                import google.generativeai as genai
-                if self.api_key:
-                    genai.configure(api_key=self.api_key)
-                self._model = genai.GenerativeModel(self.model_name)
+                from google import genai
+                self._client = genai.Client(api_key=self.api_key)
             except ImportError:
                 raise ImportError(
                     "google-generativeai package not installed. "
                     "Run: pip install google-generativeai"
                 )
-        return self._model
+        return self._client
     
     def generate(
         self,
         prompt: str,
         max_tokens: Optional[int] = None,
-        temperature: float = 0.0
+        temperature: float = 1.0,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None
     ) -> str:
         """Generate response using Gemini API."""
-        model = self._get_model()
+        client = self._get_client()
         
         try:
-            import google.generativeai as genai
-            generation_config = genai.GenerationConfig(
-                max_output_tokens=max_tokens,
-                temperature=temperature
-            )
-            response = model.generate_content(
-                prompt,
-                generation_config=generation_config
+            from google import genai
+            response = client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=genai.types.GenerateContentConfig(
+                    max_output_tokens=max_tokens,
+                    temperature=temperature,
+                )
             )
             return response.text or ""
         except Exception as e:
             raise RuntimeError(f"Gemini API call failed: {e}")
 
+    def batch_generate(
+        self,
+        prompts: list[str],
+        max_tokens: Optional[int] = None,
+        temperature: float = 1.0,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None
+    ) -> list[str]:
+        """Generate responses for a batch of prompts."""
+        return [self.generate(prompt, max_token, temperature, top_p, top_k) for prompt, max_token in zip(prompts, max_tokens)]
+
 
 class DeepSeekAPIModel(BaseModel):
     """
     DeepSeek API model wrapper.
-    Supports: DeepSeek-R1, DeepSeek-R2
+    Currently supports: DeepSeek-V3.2-Thinking
     """
     
     def __init__(
@@ -358,7 +382,8 @@ class DeepSeekAPIModel(BaseModel):
         name: str,
         model_name: str = "deepseek-reasoner",
         api_key: Optional[str] = None,
-        api_base: str = "https://api.deepseek.com/v1"
+        api_base: str = "https://api.deepseek.com",
+        use_temperature: bool = False,
     ):
         """
         Initialize DeepSeek model.
@@ -373,43 +398,54 @@ class DeepSeekAPIModel(BaseModel):
         self.model_name = model_name
         self.api_key = api_key or os.environ.get("DEEPSEEK_API_KEY")
         self.api_base = api_base
+        self.use_temperature = use_temperature
+        self._client = None
+
+    def _get_client(self):
+        """Lazy initialization of DeepSeek model."""
+        if self._client is None:
+            try:
+                from openai import OpenAI
+                self._client = OpenAI(api_key=self.api_key, base_url=self.api_base)
+            except ImportError:
+                raise ImportError(
+                    "OpenAI package not installed. "
+                    "Run: pip install openai"
+                )
+        return self._client
         
     def generate(
         self,
         prompt: str,
         max_tokens: Optional[int] = None,
-        temperature: float = 0.0
+        temperature: float = 1.0,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None
     ) -> str:
         """Generate response using DeepSeek API."""
-        import requests
-        
-        if not self.api_key:
-            raise ValueError("DEEPSEEK_API_KEY not set")
-        
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        payload = {
-            "model": self.model_name,
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": max_tokens,
-            "temperature": temperature
-        }
+        client = self._get_client()
         
         try:
-            response = requests.post(
-                f"{self.api_base}/chat/completions",
-                headers=headers,
-                json=payload,
-                timeout=60
+            response = client.responses.create(
+                model=self.model_name,
+                input=prompt,
+                max_output_tokens=max_tokens,
+                temperature=temperature if self.use_temperature else None,
             )
-            response.raise_for_status()
-            data = response.json()
-            return data["choices"][0]["message"]["content"]
+            return response.output_text
         except Exception as e:
             raise RuntimeError(f"DeepSeek API call failed: {e}")
+
+    def batch_generate(
+        self,
+        prompts: list[str],
+        max_tokens: Optional[int] = None,
+        temperature: float = 1.0,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None
+    ) -> list[str]:
+        """Generate responses for a batch of prompts."""
+        return [self.generate(prompt, max_tokens, temperature, top_p, top_k) for prompt in prompts]
 
 
 # Factory function for creating models from config
@@ -436,19 +472,19 @@ def create_model(name: str, config: dict) -> BaseModel:
     elif model_type == "openai":
         return OpenAIChatModel(
             name=name,
-            model_name=config.get("model_name", "gpt-4"),
+            model_name=config.get("model_name", "gpt-5.1"),
             api_base=config.get("api_base")
         )
     elif model_type == "gemini":
         return GeminiModel(
             name=name,
-            model_name=config.get("model_name", "gemini-pro")
+            model_name=config.get("model_name", "gemini-3-pro-preview")
         )
     elif model_type == "deepseek":
         return DeepSeekAPIModel(
             name=name,
             model_name=config.get("model_name", "deepseek-reasoner"),
-            api_base=config.get("api_base", "https://api.deepseek.com/v1")
+            api_base=config.get("api_base", "https://api.deepseek.com")
         )
     else:
         raise ValueError(f"Unknown model type: {model_type}")
