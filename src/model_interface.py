@@ -3,10 +3,8 @@ Model interface abstractions for local and API-based models.
 """
 
 import os
-import torch
 from abc import ABC, abstractmethod
 from typing import Optional
-from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 class BaseModel(ABC):
@@ -68,6 +66,7 @@ class LocalModel(BaseModel):
     Local model wrapper for open-source models.
     Supports: Qwen3-8B, Llama-3.1-8B, DeepSeekMath-7B
     """
+    import torch
     
     def __init__(
         self,
@@ -102,6 +101,7 @@ class LocalModel(BaseModel):
             return
             
         if self.backend == "transformers":
+            from transformers import AutoModelForCausalLM, AutoTokenizer
             self._tokenizer = AutoTokenizer.from_pretrained(
                 self.model_path,
                 cache_dir=".cache/models",

@@ -30,14 +30,14 @@ API_MODELS = {
         "model_name": "gpt-5.1",
         "env_key": "OPENAI_API_KEY"
     },
-    "gemini-3": {
+    "gemini-2.5": {
         "type": "gemini",
-        "model_name": "gemini-3-pro-preview",
+        "model_name": "gemini-2.5-flash",
         "env_key": "GOOGLE_API_KEY"
     },
     "deepseek-v3.2": {
         "type": "deepseek",
-        "model_name": "deepseek-reasoner",
+        "model_name": "deepseek-chat",
         "env_key": "DEEPSEEK_API_KEY"
     },
 }
@@ -45,14 +45,10 @@ API_MODELS = {
 # Experiment configurations
 EXPERIMENT_CONFIGS = [
     # (language, mode, max_tokens)
-    # ("en", "direct", 128),
-    # ("en", "direct", 256),
-    # ("en", "direct", 512),
-    # ("en", "direct", 1024),
-    # ("zh", "direct", 128),
-    # ("zh", "direct", 256),
-    # ("zh", "direct", 512),
-    ("zh", "direct", 4096),
+    ("zh", "direct", 8192),
+    ("en", "direct", 8192),
+    ("ja", "direct", 8192),
+    ("es", "direct", 8192),
 ]
 
 
