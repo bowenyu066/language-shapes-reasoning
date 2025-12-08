@@ -63,3 +63,8 @@ Thumbs.db
 # data/
 bin/
 .cache/
+
+# Miscellaneous
+*.sh
+wandb/
+logs/

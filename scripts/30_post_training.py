@@ -258,7 +258,7 @@ def load_model_and_tokenizer(config: Dict, model_type: str):
         dtype=torch_dtype,
         attn_implementation=model_cfg.get("attn_implementation", "flash_attention_2"),
         cache_dir=model_cfg.get("cache_dir"),
-        device_map="cuda:0",
+        device_map="auto",
     )
     
     # Apply LoRA

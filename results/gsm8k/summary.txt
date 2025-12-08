@@ -40,3 +40,45 @@ Max Tokens=4096 | llama-3.1-8b | en | direct | acc=0.8029 (1059/1319)
 Evaluation complete!
 Results saved to: results/gsm8k
 ============================================================
+============================================================
+GSM8K Evaluation Results Summary
+============================================================
+
+Max Tokens=128 | qwen3-8b | zh | zh_translate_then_solve | acc=0.3252 (429/1319)
+Max Tokens=256 | qwen3-8b | zh | zh_translate_then_solve | acc=0.8681 (1145/1319)
+Max Tokens=512 | qwen3-8b | zh | zh_translate_then_solve | acc=0.9045 (1193/1319)
+Max Tokens=1024 | qwen3-8b | zh | zh_translate_then_solve | acc=0.9007 (1188/1319)
+Max Tokens=4096 | qwen3-8b | zh | zh_translate_then_solve | acc=0.8984 (1185/1319)
+
+============================================================
+Evaluation complete!
+Results saved to: results/gsm8k
+============================================================
+============================================================
+GSM8K Evaluation Results Summary
+============================================================
+
+Max Tokens=128 | qwen3-8b | zh | direct | acc=0.1713 (226/1319)
+Max Tokens=256 | qwen3-8b | zh | direct | acc=0.7066 (932/1319)
+Max Tokens=512 | qwen3-8b | zh | direct | acc=0.9067 (1196/1319)
+Max Tokens=1024 | qwen3-8b | zh | direct | acc=0.8984 (1185/1319)
+Max Tokens=4096 | qwen3-8b | zh | direct | acc=0.8939 (1179/1319)
+
+============================================================
+Evaluation complete!
+Results saved to: results/gsm8k
+============================================================
+============================================================
+GSM8K Evaluation Results Summary
+============================================================
+
+Max Tokens=128 | qwen3-8b | en | direct | acc=0.1380 (182/1319)
+Max Tokens=256 | qwen3-8b | en | direct | acc=0.6952 (917/1319)
+Max Tokens=512 | qwen3-8b | en | direct | acc=0.8810 (1162/1319)
+Max Tokens=1024 | qwen3-8b | en | direct | acc=0.8848 (1167/1319)
+Max Tokens=4096 | qwen3-8b | en | direct | acc=0.8870 (1170/1319)
+
+============================================================
+Evaluation complete!
+Results saved to: results/gsm8k
+============================================================
