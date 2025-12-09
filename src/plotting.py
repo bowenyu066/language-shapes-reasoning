@@ -103,27 +103,27 @@ def plot_multi_bar(
 
 
 def plot_multi_bar_v2(
-    params_en: Dict[str, float],
-    params_zh: Dict[str, float],
-    params_zh_translate_then_solve: Dict[str, float],
+    params_list: List[Dict[str, float]],
+    params_names: List[str],
     max_param: float,
     min_param: float,
     xname: str,
     save_path: Path,
+    yname: str = "",
     title: str = "",
     legend: bool = True,
 ) -> None:
     """
-    Plot the bar chart of parameters for English, Chinese, and Chinese after translation and then solve.
+    Plot the bar chart of parameters for different evaluation languages.
     
     Args:
-        params_en (dict[str, float]): The parameter values for English model.
-        params_zh (dict[str, float]): The parameter values for Chinese model.
-        params_zh_translate_then_solve (dict[str, float]): The parameter values for Chinese model after translation and then solve.
+        params_list (List[Dict[str, float]]): The parameter values for different models.
+        params_names (List[str]): The names of the parameters.
         max_param (float): The maximum value for normalization.
         min_param (float): The minimum value for normalization.
         xname (str): The name of the x-axis.
         save_path (Path): The path to save the plot.
+        yname (str): The name of the y-axis.
         title (str): The title of the plot.
     """
     plt.rcParams["font.family"] = "arial"  
@@ -133,38 +133,27 @@ def plot_multi_bar_v2(
     # plt.rcParams['mathtext.it'] = 'arial:italic'
     # plt.rcParams['mathtext.bf'] = 'arial:bold'
     
-    width = 0.27
-    colors = ("#96ced3", "#e9c54e", "#e64b35")
+    L = len(params_list)
+    width = 0.9 / L * 2
+    colors = ("#96ced3", "#e9c54e", "#e64b35", "#8491b4")
     # colors_alpha = tuple(to_rgba(c, alpha=0.3) for c in colors)
     # colors_alpha_2 = tuple(to_rgba(c, alpha=0.6) for c in colors)
-    x = np.arange(len(params_en))
+    x = np.arange(len(params_list[0])) * 2
     
-    fig, ax = plt.subplots(figsize=(14, 6))
-    # English results
-    keys, values_en = zip(*params_en.items())
-    norm_values_en = _rescale(np.array(values_en), min_param, max_param)
-    rects_en = ax.bar(x - width / 2, norm_values_en, width, label="English", color=colors[0])
-    values_en = [f"{v:.4f}" for v in values_en]
-    ax.bar_label(rects_en, labels=values_en, padding=3, fmt="%.4f")
-    # Chinese results
-    keys, values_zh = zip(*params_zh.items())
-    norm_values_zh = _rescale(np.array(values_zh), min_param, max_param)
-    rects_zh = ax.bar(x + width / 2, norm_values_zh, width, label="Chinese", color=colors[1])
-    values_zh = [f"{v:.4f}" for v in values_zh]
-    ax.bar_label(rects_zh, labels=values_zh, padding=3, fmt="%.4f")
-    # Chinese translate then solve results
-    keys, values_zh_translate_then_solve = zip(*params_zh_translate_then_solve.items())
-    norm_values_zh_translate_then_solve = _rescale(np.array(values_zh_translate_then_solve), min_param, max_param)
-    rects_zh_translate_then_solve = ax.bar(x + width * 3 / 2, norm_values_zh_translate_then_solve, width, label="Chinese→English", color=colors[2])
-    values_zh_translate_then_solve = [f"{v:.4f}" for v in values_zh_translate_then_solve]
-    ax.bar_label(rects_zh_translate_then_solve, labels=values_zh_translate_then_solve, padding=3, fmt="%.4f")
-    
-    ax.set_xticks(x + width / 2, keys)
+    fig, ax = plt.subplots(figsize=(18, 6))
+    for i, params in enumerate(params_list):
+        keys, values = zip(*params.items())
+        norm_values = _rescale(np.array(values), min_param, max_param)
+        rects = ax.bar(x + (i - L / 2 + 1 / 2) * width, norm_values, width, label=params_names[i], color=colors[i % len(colors)])
+        values = [f"{v:.4f}" for v in values]
+        ax.bar_label(rects, labels=values, padding=3, fmt="%.4f")
+    ax.set_xticks(x, keys)
     ax.set_yticks([])
     ax.set_xlabel(xname)
+    ax.set_ylabel(yname)
     ax.set_ylim(0.0, 1.0)
     if legend:
-        ax.legend(loc='upper right', bbox_to_anchor=(1.4, 1))
+        ax.legend(loc='upper right', bbox_to_anchor=(1.2, 1))
     if title:
         plt.title(title)
     plt.tight_layout()
@@ -190,8 +179,8 @@ def plot_length_distribution(
 
     fig, ax = plt.subplots(figsize=(12, 6))
 
-    colors = ["#80ae9a", "#f6d6c2"]
-    outlines_colors = ["#568b87", "#d47264"]
+    colors = ["#80ae9a", "#f6d6c2", "#df92d9", "#c1ae3d"]
+    outlines_colors = ["#568b87", "#d47264", "#bf24b3", "#f5e582"]
 
     for i, token_length in enumerate(token_lengths):
         token_length = np.array(
@@ -239,3 +228,91 @@ def plot_length_distribution(
     plt.savefig(save_path)
     plt.close(fig)
     
+
+def plot_length_distribution_ridge(
+    token_lengths: List[List[int]],
+    save_path: Path,
+    xname: str = "",
+    title: str = "",
+    legend: bool = True,
+    legend_labels: List[str] = None,
+    plot_avg: bool = True,
+) -> None:
+    """
+    Ridge / joyplot style visualization of output-length distributions.
+    One shared x-axis; curves stacked vertically with slight overlap.
+    """
+
+    plt.rcParams["font.family"] = "arial"
+    plt.rcParams["font.size"] = 18
+
+    # Filter and collect all data first
+    cleaned = []
+    for tl in token_lengths:
+        arr = np.array([L for L in tl if 0 < L < 15000])
+        if len(arr) > 1:
+            cleaned.append(arr)
+        else:
+            cleaned.append(None)
+
+    # global x-range
+    all_vals = np.concatenate([c for c in cleaned if c is not None])
+    x_min, x_max = 0, 5000   # Fix
+    xs = np.linspace(x_min, x_max, 500)
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    colors = ["#80ae9a", "#f6d6c2", "#df92d9", "#c1ae3d"]
+    n = len(token_lengths)
+    offset_step = 1.2  # vertical distance between ridges
+
+    max_height = 0.0
+    kdes = []
+    for c in cleaned:
+        if c is None:
+            kdes.append(None)
+            continue
+        kde = gaussian_kde(c, bw_method=0.05)  # tweak 0.25 for smoothness
+        ys = kde(xs)
+        kdes.append(ys)
+        max_height = max(max_height, ys.max())
+
+    # Normalize heights so they are comparable and fit nicely
+    if max_height == 0:
+        max_height = 1.0
+
+    for i, (c, ys) in enumerate(zip(cleaned, kdes)):
+        if c is None or ys is None:
+            continue
+
+        color = colors[i % len(colors)]
+        offset = i * offset_step
+        ys_norm = ys / max_height  # normalize to [0, ~1]
+
+        # Ridge fill + outline
+        ax.fill_between(xs, offset, offset + ys_norm, color=color, alpha=0.6)
+        ax.plot(xs, offset + ys_norm, color=color, lw=4)
+
+        # Mean line for that language
+        mean_val = c.mean()
+        ax.vlines(mean_val, offset, offset + ys_norm.max(), color=color,
+                  linestyles="--", linewidth=4, alpha=0.8)
+
+        # Label on the left
+        if legend_labels is not None:
+            ax.text(x_min - 0.03 * (x_max - x_min),
+                    offset + 0.5 * ys_norm.max(),
+                    legend_labels[i],
+                    ha="right", va="center")
+
+    ax.set_xlabel(xname if xname else "Output Lengths")
+    ax.set_yticks([])
+    ax.set_ylabel("")
+    ax.set_xlim(x_min, x_max)
+
+    if title:
+        ax.set_title(title)
+
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
