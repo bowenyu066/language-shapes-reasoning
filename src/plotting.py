@@ -249,7 +249,7 @@ def plot_length_distribution_ridge(
     # Filter and collect all data first
     cleaned = []
     for tl in token_lengths:
-        arr = np.array([L for L in tl if 0 < L < 15000])
+        arr = np.array([L for L in tl if 100 < L < 15000])
         if len(arr) > 1:
             cleaned.append(arr)
         else:
