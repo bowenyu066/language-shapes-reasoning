@@ -1,20 +1,20 @@
-# Disentangling Tokenization from Reasoning: An Investigation of Sequence Length Effects in Multilingual Transformer Models
+# The Efficiency Paradox: Does Maximizing Token Density Degrade Reasoning Performance?
 
-**Project Report for 6.7960 Deep Learning (Fall 2025)**
+**6.7960 Deep Learning Final Project Report by Bowen Yu, Linrui Ma, and Yiwei Liang**
 
 ---
 
-## Motivation and Background
+## Introduction
 
-Transformer-based language models have revolutionized natural language processing, but their computational complexity scales quadratically with sequence length: $O(n^2d)$ for self-attention, where $n$ is sequence length and $d$ is model dimension. This fundamental constraint makes sequence length a critical factor in both training efficiency and inference cost.
+Sequence-based neural architectures have transformed how we model complex dependencies. Yet, the quadratic cost of self-attention, $O(n^2 d)$, remains a defining constraint. As sequence length $(n)$ grows, the computational and memory requirements for inference escalate, establishing 'tokens per second' as the primary metric of efficiency.
 
-Recent work has explored various approaches to reduce sequence length while preserving model capability: sparse attention patterns, learned compression tokens, and efficient attention approximations. However, one underexplored dimension is the role of **tokenization** itself—different languages require dramatically different numbers of tokens to express identical semantic content.
+Crucially, this metric obscures a fundamental variable: information density. Because different encoding strategies can represent the exact same underlying information with vastly different token counts, the computational cost of processing a fixed unit of information varies significantly.
 
-Consider a simple example:
-- English: "The quick brown fox jumps over the lazy dog" → ~10 tokens (depending on tokenizer)
-- Chinese: "快速的棕色狐狸跳过懒狗" → ~8 characters, potentially 4-6 tokens
+While recent work has explored methods to reduce sequence length, such as sparse attention patterns, learned compression tokens, and efficient approximations, the role of tokenization itself remains an underexplored dimension.
 
-This raises a fundamental question for multilingual transformers: **Can we disentangle the effects of tokenization efficiency from actual reasoning capability?** If a model produces shorter sequences in one language, is this purely a tokenization artifact, or does it reflect differences in internal reasoning processes?
+To study this phenomenon, we use multilingual Large Language Models as a strategic entry point. Consider the sentence: 'The quick brown fox jumps over the lazy dog.' In English, this consumes roughly 10 tokens. In Chinese ('快速的棕色狐狸跳过懒狗'), the same semantic content compresses to just 4–6 tokens. This natural variation provides an ideal experimental proxy to test the impact of compression.
+
+In this investigation, we leverage these linguistic differences to determine whether the reduced sequence lengths inherent to logographic languages offer a genuine computational advantage, or if high-density tokenization exposes architectural bottlenecks that degrade reasoning capability.
 
 ### Why This Matters for Deep Learning
 
