@@ -49,6 +49,7 @@ EXPERIMENT_CONFIGS = [
     ("en", "direct", 8192),
     ("ja", "direct", 8192),
     ("es", "direct", 8192),
+    ("th", "direct", 8192),
 ]
 
 
@@ -200,7 +201,7 @@ def main():
     parser.add_argument(
         "--language",
         type=str,
-        choices=["en", "zh"],
+        choices=["en", "zh", "ja", "es", "th"],
         help="Specific language to evaluate (default: all)"
     )
     parser.add_argument(

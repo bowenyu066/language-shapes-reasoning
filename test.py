@@ -5,7 +5,7 @@ import pandas as pd
 from src.parsing import is_answer_correct
 from src.data_utils import load_jsonl
 
-PATH = "results/mmath/mmath_gemini-2.5_en_direct_maxtok8192.csv"
+PATH = "results/mmath/mmath_gemini-2.5_th_direct_maxtok8192.csv"
 
 df = pd.read_csv(PATH)
 
@@ -40,7 +40,7 @@ def extract_answer(text: str) -> Optional[str]:
 raw_outputs, ids = df["raw_output"], df["id"]
 answers = raw_outputs.apply(extract_answer)
 
-dataset = load_jsonl("data/processed/mmath/mmath_en.jsonl")
+dataset = load_jsonl("data/processed/mmath/mmath_th.jsonl")
 
 valid_count = answers.notnull().sum()
 correct_count = 0
@@ -58,3 +58,16 @@ total_accuracy = correct_count / len(dataset)
 print(f"Valid counts: {valid_count}/{len(dataset)}")
 print(f"Valid accuracy: {valid_accuracy:.4f}")
 print(f"Total accuracy: {total_accuracy:.4f}")
+
+# PATH = "results/gsm8k/gsm8k_qwen3-8b_en_direct_maxtok128.csv"
+# df = pd.read_csv(PATH)
+
+# raw_outputs = df["raw_output"]
+
+# # want to count if there's any chinese characters in the raw output
+# chinese_count = 0
+# for raw_output in raw_outputs:
+#     if re.search(r'[一-鿿]', raw_output):
+#         chinese_count += 1
+
+# print(f"Chinese count: {chinese_count}")
