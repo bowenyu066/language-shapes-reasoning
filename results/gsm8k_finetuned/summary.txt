@@ -1,0 +1,13 @@
+============================================================
+GSM8K Fine-tuned Model Evaluation Results Summary
+Adapter: outputs/sft/llama-3.1-8b/zh/20251208_221936/final
+============================================================
+
+Max Tokens=4096 | llama-3.1-8b-ft-zh | zh | zh_translate_then_solve | acc=0.5345 (705/1319)
+
+============================================================
+Evaluation complete!
+Results saved to: results/gsm8k_finetuned
+============================================================
+
+

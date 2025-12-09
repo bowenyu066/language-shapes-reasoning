@@ -1,0 +1,43 @@
+dataset:
+  cache_dir: .cache/datasets
+  config: main
+  name: openai/gsm8k
+  split: train
+lora:
+  lora_alpha: 64
+  r: 32
+  target_modules:
+  - q_proj
+  - v_proj
+  - k_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+  task_type: CAUSAL_LM
+model:
+  attn_implementation: flash_attention_2
+  cache_dir: .cache/models
+  device: cuda
+  name: meta-llama/Llama-3.1-8B-Instruct
+  torch_dtype: bfloat16
+reward:
+  correctness_reward: 1.5
+  format_reward: 0.5
+training:
+  bf16: true
+  do_sample: true
+  fp16: false
+  gradient_accumulation_steps: 2
+  learning_rate: 1.0e-05
+  logging_steps: 10
+  max_completion_length: 4096
+  max_prompt_length: 512
+  max_steps: 500
+  run_name: sft-gsm8k
+  temperature: 0.3
+  top_k: 20
+  top_p: 0.9
+wandb:
+  enabled: true
+  project: rl-llama-gsm8k
