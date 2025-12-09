@@ -200,7 +200,7 @@ def main():
     parser.add_argument(
         "--language",
         type=str,
-        choices=["en", "zh"],
+        choices=["en", "zh", "ja", "es"],
         help="Specific language to evaluate (default: all)"
     )
     parser.add_argument(
