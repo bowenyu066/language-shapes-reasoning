@@ -184,7 +184,7 @@ def plot_length_distribution(
 
     for i, token_length in enumerate(token_lengths):
         token_length = np.array(
-            [L for L in token_length if 0 < L < 15000]
+            [L for L in token_length if 0 < L < 2000]
         )
 
         # Histogram (set density=True so KDE is on the same scale)
