@@ -1,0 +1,29 @@
+Token Length Recording Summary
+============================================================
+
+Model: gemini-2.5
+Languages: en, zh, es, th
+Base directory: results/mmath
+
+
+deepseek-v3:
+  EN:
+    Samples: 64
+    Avg tokens: 360.5
+    Median tokens: 331.0
+    Total tokens: 23073
+  ES:
+    Samples: 64
+    Avg tokens: 398.7
+    Median tokens: 369.5
+    Total tokens: 25515
+  TH:
+    Samples: 64
+    Avg tokens: 397.4
+    Median tokens: 390.5
+    Total tokens: 25433
+  ZH:
+    Samples: 64
+    Avg tokens: 503.8
+    Median tokens: 457.5
+    Total tokens: 32243

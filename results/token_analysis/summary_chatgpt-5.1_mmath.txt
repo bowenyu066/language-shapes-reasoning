@@ -1,0 +1,73 @@
+Token Length Recording Summary
+============================================================
+
+Model: chatgpt-5.1
+Languages: en, zh, es, th
+Base directory: results/mmath
+
+
+qwen3-8b:
+  EN:
+    Samples: 10
+    Avg tokens: 707.6
+    Median tokens: 357.5
+    Total tokens: 7076
+  ES:
+    Samples: 10
+    Avg tokens: 521.5
+    Median tokens: 348.0
+    Total tokens: 5215
+  TH:
+    Samples: 10
+    Avg tokens: 978.9
+    Median tokens: 367.5
+    Total tokens: 9789
+  ZH:
+    Samples: 10
+    Avg tokens: 770.1
+    Median tokens: 598.5
+    Total tokens: 7701
+
+deepseek-v3:
+  EN:
+    Samples: 10
+    Avg tokens: 611.8
+    Median tokens: 336.0
+    Total tokens: 6118
+  ES:
+    Samples: 10
+    Avg tokens: 472.7
+    Median tokens: 322.5
+    Total tokens: 4727
+  TH:
+    Samples: 10
+    Avg tokens: 735.5
+    Median tokens: 304.0
+    Total tokens: 7355
+  ZH:
+    Samples: 10
+    Avg tokens: 674.1
+    Median tokens: 513.5
+    Total tokens: 6741
+
+seed-coder-8b:
+  EN:
+    Samples: 10
+    Avg tokens: 736.6
+    Median tokens: 369.5
+    Total tokens: 7366
+  ES:
+    Samples: 10
+    Avg tokens: 537.3
+    Median tokens: 355.5
+    Total tokens: 5373
+  TH:
+    Samples: 10
+    Avg tokens: 996.8
+    Median tokens: 379.0
+    Total tokens: 9968
+  ZH:
+    Samples: 10
+    Avg tokens: 783.9
+    Median tokens: 605.5
+    Total tokens: 7839

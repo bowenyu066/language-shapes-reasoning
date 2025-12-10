@@ -1,0 +1,29 @@
+Token Length Recording Summary
+============================================================
+
+Model: deepseek-v3.2
+Languages: en, zh, es, th
+Base directory: results/mmath
+
+
+deepseek-v3:
+  EN:
+    Samples: 306
+    Avg tokens: 786.4
+    Median tokens: 524.0
+    Total tokens: 240631
+  ES:
+    Samples: 306
+    Avg tokens: 787.1
+    Median tokens: 563.0
+    Total tokens: 240854
+  TH:
+    Samples: 306
+    Avg tokens: 762.1
+    Median tokens: 544.5
+    Total tokens: 233190
+  ZH:
+    Samples: 306
+    Avg tokens: 700.7
+    Median tokens: 475.0
+    Total tokens: 214407

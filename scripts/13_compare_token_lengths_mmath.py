@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 """
-Compare token lengths of English vs Chinese outputs using different tokenizers.
+Record token lengths for multilingual MMATH outputs using different tokenizers.
 
-This script loads model outputs from GSM8K evaluation results and compares
-the token lengths when tokenized with different tokenizers (Qwen, DeepSeek, Seed).
+This script loads model outputs from MMATH evaluation results and records
+the token lengths when tokenized with different tokenizers (Qwen, DeepSeek, GPT-4o, Llama).
 
-The goal is to analyze whether Chinese outputs are more token-efficient than
-English outputs for the same math problems.
+The script processes four languages: English, Chinese, Spanish, and Thai.
 
 Usage:
-    python scripts/12_compare_token_lengths.py
-    python scripts/12_compare_token_lengths.py --en-csv results/gsm8k/gsm8k_qwen3-8b_en_direct_maxtok4096.csv
-    python scripts/12_compare_token_lengths.py --limit 100  # For testing
+    python scripts/13_compare_token_lengths_mmath.py --model chatgpt-5.1
+    python scripts/13_compare_token_lengths_mmath.py --model deepseek-v3.2 --limit 100
 """
 
 import argparse
@@ -76,255 +74,195 @@ def count_tokens(text: str, tokenizer) -> int:
     return len(tokens)
 
 
-def extract_answer_portion(raw_output: str) -> str:
+def load_multilang_results(model: str, base_dir: str = "results/mmath") -> dict:
     """
-    Extract the model's answer portion from the raw output.
-
-    The raw_output includes the prompt, so we need to extract just the
-    model's response. We look for the assistant's response after the prompt.
-    """
-    # The raw output typically contains the full conversation
-    # We want to extract just the model's generated answer
-
-    # For Qwen models, look for the assistant marker
-    if "<|assistant|>" in raw_output:
-        parts = raw_output.split("<|assistant|>")
-        if len(parts) > 1:
-            return parts[-1].strip()
-
-    # For other formats, try to find the answer after common markers
-    markers = [
-        "assistant\n",
-        "Assistant:",
-        "\n\n",  # Often the response starts after double newline
-    ]
-
-    for marker in markers:
-        if marker in raw_output:
-            idx = raw_output.rfind(marker)
-            if idx != -1:
-                return raw_output[idx + len(marker):].strip()
-
-    # If no marker found, return the whole output
-    return raw_output
-
-
-def analyze_token_lengths(
-    en_results: list[dict],
-    zh_results: list[dict],
-    tokenizers: dict,
-    limit: Optional[int] = None,
-    use_answer_only: bool = True,
-    both_correct_only: bool = True,
-) -> dict:
-    """
-    Analyze token lengths for English vs Chinese outputs.
-
+    Load evaluation results for all four languages.
+    
     Args:
-        en_results: English evaluation results.
-        zh_results: Chinese evaluation results.
-        tokenizers: Dictionary of tokenizer names to tokenizer objects.
-        limit: Optional limit on number of examples to analyze.
-        use_answer_only: If True, extract just the answer portion (excluding prompt).
-        both_correct_only: If True, only analyze examples where both EN and ZH are correct.
-
+        model: Model name (e.g., 'chatgpt-5.1', 'deepseek-v3.2')
+        base_dir: Base directory containing results
+    
     Returns:
-        Dictionary with analysis results.
+        Dictionary mapping language codes to list of result dictionaries
     """
-    def _reg_id(id_):
-        return id_.split("_")[1]
-    # Create lookup by ID for matching
-    en_by_id = {_reg_id(r["id"]): r for r in en_results}
-    zh_by_id = {_reg_id(r["id"]): r for r in zh_results}
-
-    # Find common IDs (questions answered in both languages)
-    common_ids = set(en_by_id.keys()) & set(zh_by_id.keys())
-    print(f"Found {len(common_ids)} common questions answered in both languages")
-
-    # Filter for both correct if requested
-    if both_correct_only:
-        correct_ids = set()
-        for qid in common_ids:
-            en_correct = str(en_by_id[qid].get("correct", "0")) == "1"
-            zh_correct = str(zh_by_id[qid].get("correct", "0")) == "1"
-            if en_correct and zh_correct:
-                correct_ids.add(qid)
-        print(f"Filtered to {len(correct_ids)} examples where both EN and ZH are correct")
-        common_ids = correct_ids
-
-    if limit:
-        common_ids = sorted(list(common_ids))[:limit]
-        print(f"Limiting analysis to {len(common_ids)} examples")
-
-    # Analyze each tokenizer
+    languages = ['en', 'zh', 'es', 'th']
     results = {}
-
-    for tok_name, tokenizer in tokenizers.items():
-        print(f"\nAnalyzing with {tok_name} tokenizer...")
-
-        en_tokens = []
-        zh_tokens = []
-        ratios = []  # zh_tokens / en_tokens
-
-        for qid in sorted(common_ids):
-            en_output = en_by_id[qid]["raw_output"]
-            zh_output = zh_by_id[qid]["raw_output"]
-
-            # if use_answer_only:
-            #    en_output = extract_answer_portion(en_output)
-            #    zh_output = extract_answer_portion(zh_output)
-
-            en_tok_count = count_tokens(en_output, tokenizer)
-            zh_tok_count = count_tokens(zh_output, tokenizer)
-
-            en_tokens.append(en_tok_count)
-            zh_tokens.append(zh_tok_count)
-
-            if en_tok_count > 0:
-                ratios.append(zh_tok_count / en_tok_count)
-
-        # Compute statistics
-        avg_en = sum(en_tokens) / len(en_tokens) if en_tokens else 0
-        avg_zh = sum(zh_tokens) / len(zh_tokens) if zh_tokens else 0
-        avg_ratio = avg_zh / avg_en if avg_en > 0 else 0  # (Avg ZH) / (Avg EN)
-
-        # Compute median
-        sorted_en = sorted(en_tokens)
-        sorted_zh = sorted(zh_tokens)
-        n = len(en_tokens)
-        median_en = sorted_en[n // 2] if n % 2 == 1 else (sorted_en[n // 2 - 1] + sorted_en[n // 2]) / 2
-        median_zh = sorted_zh[n // 2] if n % 2 == 1 else (sorted_zh[n // 2 - 1] + sorted_zh[n // 2]) / 2
-        median_ratio = median_zh / median_en if median_en > 0 else 0  # (Median ZH) / (Median EN)
-
-        results[tok_name] = {
-            "n_samples": len(en_tokens),
-            "avg_en_tokens": avg_en,
-            "avg_zh_tokens": avg_zh,
-            "median_en_tokens": median_en,
-            "median_zh_tokens": median_zh,
-            "avg_ratio": avg_ratio,  # (Avg ZH) / (Avg EN)
-            "median_ratio": median_ratio,  # (Median ZH) / (Median EN)
-            "total_en_tokens": sum(en_tokens),
-            "total_zh_tokens": sum(zh_tokens),
-            "en_tokens_list": en_tokens,
-            "zh_tokens_list": zh_tokens,
-        }
-
-        print(f"  Samples: {len(en_tokens)}")
-        print(f"  Avg EN tokens: {avg_en:.1f}")
-        print(f"  Avg ZH tokens: {avg_zh:.1f}")
-        print(f"  Avg ZH/EN ratio: {avg_ratio:.3f} (= {avg_zh:.1f} / {avg_en:.1f})")
-        print(f"  Median ZH/EN ratio: {median_ratio:.3f} (= {median_zh:.1f} / {median_en:.1f})")
-
+    
+    for lang in languages:
+        csv_path = os.path.join(base_dir, f"mmath_{model}_{lang}_direct_maxtok8192.csv")
+        if os.path.exists(csv_path):
+            results[lang] = load_csv_results(csv_path)
+            print(f"  Loaded {lang}: {len(results[lang])} examples")
+        else:
+            print(f"  Warning: File not found for {lang}: {csv_path}")
+    
     return results
 
 
-def save_detailed_results(
-    en_results: list[dict],
-    zh_results: list[dict],
+def record_token_lengths(
+    multilang_results: dict,
     tokenizers: dict,
-    output_path: str,
     limit: Optional[int] = None,
-    use_answer_only: bool = True,
-    both_correct_only: bool = True,
-):
-    """Save detailed per-example token counts to a CSV file."""
+) -> dict:
+    """
+    Record token lengths for all languages.
+
+    Args:
+        multilang_results: Dictionary mapping language codes to result lists.
+        tokenizers: Dictionary of tokenizer names to tokenizer objects.
+        limit: Optional limit on number of examples to analyze.
+
+    Returns:
+        Dictionary with token count records for each language.
+    """
     def _reg_id(id_):
         return id_.split("_")[1]
-
-    en_by_id = {_reg_id(r["id"]): r for r in en_results}
-    zh_by_id = {_reg_id(r["id"]): r for r in zh_results}
-    common_ids = set(en_by_id.keys()) & set(zh_by_id.keys())
-
-    # Filter for both correct if requested
-    if both_correct_only:
-        common_ids = {
-            qid for qid in common_ids
-            if str(en_by_id[qid].get("correct", "0")) == "1"
-            and str(zh_by_id[qid].get("correct", "0")) == "1"
-        }
-
-    common_ids = sorted(common_ids)
-
+    
+    # Create lookup by ID for each language
+    results_by_id = {}
+    all_ids = set()
+    
+    for lang, results in multilang_results.items():
+        results_by_id[lang] = {_reg_id(r["id"]): r for r in results}
+        all_ids.update(results_by_id[lang].keys())
+    
+    # Find common IDs across all languages
+    common_ids = set.intersection(*[set(results_by_id[lang].keys()) for lang in multilang_results.keys()])
+    print(f"\nFound {len(common_ids)} questions answered in all languages")
+    print(f"Total unique IDs across all languages: {len(all_ids)}")
+    
+    # Filter for cases where ALL languages answered correctly
+    all_correct_ids = set()
+    for qid in common_ids:
+        all_correct = True
+        for lang in multilang_results.keys():
+            if str(results_by_id[lang][qid].get("correct", "0")) != "1":
+                all_correct = False
+                break
+        if all_correct:
+            all_correct_ids.add(qid)
+    
+    print(f"Filtered to {len(all_correct_ids)} examples where all languages answered correctly")
+    common_ids = all_correct_ids
+    
     if limit:
-        common_ids = common_ids[:limit]
+        common_ids = sorted(list(common_ids))[:limit]
+        print(f"Limiting analysis to {len(common_ids)} examples")
+    
+    # Record token counts for each tokenizer and language
+    token_records = {}
+    
+    for tok_name, tokenizer in tokenizers.items():
+        print(f"\nRecording tokens with {tok_name} tokenizer...")
+        
+        lang_tokens = {lang: [] for lang in multilang_results.keys()}
+        
+        for qid in sorted(common_ids):
+            for lang in multilang_results.keys():
+                if qid in results_by_id[lang]:
+                    output = results_by_id[lang][qid]["raw_output"]
+                    tok_count = count_tokens(output, tokenizer)
+                    lang_tokens[lang].append(tok_count)
+        
+        # Compute statistics for each language
+        token_records[tok_name] = {}
+        for lang in multilang_results.keys():
+            tokens = lang_tokens[lang]
+            avg_tokens = sum(tokens) / len(tokens) if tokens else 0
+            
+            sorted_tokens = sorted(tokens)
+            n = len(tokens)
+            median_tokens = sorted_tokens[n // 2] if n % 2 == 1 else (sorted_tokens[n // 2 - 1] + sorted_tokens[n // 2]) / 2
+            
+            token_records[tok_name][lang] = {
+                "n_samples": len(tokens),
+                "avg_tokens": avg_tokens,
+                "median_tokens": median_tokens,
+                "total_tokens": sum(tokens),
+                "tokens_list": tokens,
+            }
+            
+            print(f"  {lang.upper()}: {len(tokens)} samples, avg={avg_tokens:.1f}, median={median_tokens:.1f}")
+    
+    return token_records, common_ids, results_by_id
 
+
+def save_detailed_results(
+    common_ids: list,
+    results_by_id: dict,
+    tokenizers: dict,
+    output_path: str,
+):
+    """Save detailed per-example token counts to a CSV file."""
+    languages = list(results_by_id.keys())
+    
     # Build rows
     rows = []
-    for qid in common_ids:
-        en_output = en_by_id[qid]["raw_output"]
-        zh_output = zh_by_id[qid]["raw_output"]
-
-        # if use_answer_only:
-        #     en_text = extract_answer_portion(en_output)
-        #     zh_text = extract_answer_portion(zh_output)
-        # else:
-        en_text = en_output
-        zh_text = zh_output
-
-        row = {
-            "id": qid,
-            "en_correct": en_by_id[qid].get("correct", ""),
-            "zh_correct": zh_by_id[qid].get("correct", ""),
-            "en_char_len": len(en_text),
-            "zh_char_len": len(zh_text),
-        }
-
+    for qid in sorted(common_ids):
+        row = {"id": qid}
+        
+        # Add character lengths and correctness for each language
+        for lang in languages:
+            if qid in results_by_id[lang]:
+                output = results_by_id[lang][qid]["raw_output"]
+                row[f"{lang}_char_len"] = len(output)
+                row[f"{lang}_correct"] = results_by_id[lang][qid].get("correct", "")
+        
+        # Add token counts for each tokenizer and language
         for tok_name, tokenizer in tokenizers.items():
-            en_tok = count_tokens(en_text, tokenizer)
-            zh_tok = count_tokens(zh_text, tokenizer)
-            row[f"{tok_name}_en_tokens"] = en_tok
-            row[f"{tok_name}_zh_tokens"] = zh_tok
-            row[f"{tok_name}_ratio"] = zh_tok / en_tok if en_tok > 0 else 0
-
+            for lang in languages:
+                if qid in results_by_id[lang]:
+                    output = results_by_id[lang][qid]["raw_output"]
+                    tok_count = count_tokens(output, tokenizer)
+                    row[f"{tok_name}_{lang}_tokens"] = tok_count
+        
         rows.append(row)
-
+    
     # Write CSV
     ensure_dir(os.path.dirname(output_path))
-    fieldnames = list(rows[0].keys())
-    with open(output_path, 'w', newline='', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
+    if rows:
+        fieldnames = list(rows[0].keys())
+        with open(output_path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+        
+        print(f"\nDetailed results saved to: {output_path}")
+    else:
+        print(f"\nNo data to save to: {output_path}")
 
-    print(f"\nDetailed results saved to: {output_path}")
 
-
-def print_summary_table(results: dict):
+def print_summary_table(token_records: dict):
     """Print a formatted summary table."""
-    print("\n" + "=" * 80)
-    print("TOKEN LENGTH COMPARISON SUMMARY")
-    print("=" * 80)
-    print(f"{'Tokenizer':<20} {'Avg EN':>10} {'Avg ZH':>10} {'Avg Ratio':>12} {'Median Ratio':>14}")
-    print("-" * 80)
-
-    for tok_name, stats in results.items():
-        print(f"{tok_name:<20} {stats['avg_en_tokens']:>10.1f} {stats['avg_zh_tokens']:>10.1f} "
-              f"{stats['avg_ratio']:>12.3f} {stats['median_ratio']:>14.3f}")
-
-    print("-" * 80)
-    print("\nInterpretation:")
-    print("  - Ratio < 1.0: Chinese uses fewer tokens than English")
-    print("  - Ratio > 1.0: Chinese uses more tokens than English")
-    print("=" * 80)
+    print("\n" + "=" * 100)
+    print("TOKEN LENGTH SUMMARY FOR ALL LANGUAGES")
+    print("=" * 100)
+    
+    for tok_name, lang_stats in token_records.items():
+        print(f"\n{tok_name.upper()} Tokenizer:")
+        print("-" * 100)
+        print(f"{'Language':<12} {'Samples':>10} {'Avg Tokens':>12} {'Median Tokens':>15} {'Total Tokens':>15}")
+        print("-" * 100)
+        
+        for lang in sorted(lang_stats.keys()):
+            stats = lang_stats[lang]
+            print(f"{lang.upper():<12} {stats['n_samples']:>10} {stats['avg_tokens']:>12.1f} "
+                  f"{stats['median_tokens']:>15.1f} {stats['total_tokens']:>15}")
+    
+    print("=" * 100)
 
 
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Compare token lengths of English vs Chinese outputs"
+        description="Record token lengths for multilingual MMATH outputs"
     )
     parser.add_argument(
-        "--en-csv",
+        "--model",
         type=str,
-        default="results/gsm8k/gsm8k_qwen3-8b_en_direct_maxtok4096.csv",
-        help="Path to English results CSV"
-    )
-    parser.add_argument(
-        "--zh-csv",
-        type=str,
-        default="results/gsm8k/gsm8k_qwen3-8b_zh_direct_maxtok4096.csv",
-        help="Path to Chinese results CSV"
+        required=True,
+        choices=["chatgpt-5.1", "deepseek-v3.2", "gemini-2.5"],
+        help="Model name to analyze"
     )
     parser.add_argument(
         "--tokenizers",
@@ -332,7 +270,7 @@ def main():
         nargs="+",
         choices=list(TOKENIZERS.keys()),
         default=list(TOKENIZERS.keys()),
-        help="Tokenizers to use for comparison"
+        help="Tokenizers to use for recording"
     )
     parser.add_argument(
         "--limit",
@@ -347,44 +285,31 @@ def main():
         help="Output directory for detailed results"
     )
     parser.add_argument(
-        "--full-output",
-        action="store_true",
-        help="Analyze full output including prompt (default: answer portion only)"
-    )
-    parser.add_argument(
-        "--include-incorrect",
-        action="store_true",
-        help="Include examples where EN or ZH answer is incorrect (default: both must be correct)"
+        "--base-dir",
+        type=str,
+        default="results/mmath",
+        help="Base directory containing MMATH results"
     )
 
     args = parser.parse_args()
 
-    # Verify input files exist
-    if not os.path.exists(args.en_csv):
-        print(f"Error: English CSV not found: {args.en_csv}")
-        sys.exit(1)
-    if not os.path.exists(args.zh_csv):
-        print(f"Error: Chinese CSV not found: {args.zh_csv}")
-        sys.exit(1)
-
     print("=" * 80)
-    print("Token Length Comparison: English vs Chinese Outputs")
+    print("Token Length Recording: Multilingual MMATH Outputs")
     print("=" * 80)
-    print(f"English CSV: {args.en_csv}")
-    print(f"Chinese CSV: {args.zh_csv}")
+    print(f"Model: {args.model}")
+    print(f"Languages: English, Chinese, Spanish, Thai")
     print(f"Tokenizers: {args.tokenizers}")
-    print(f"Analyze: {'Full output' if args.full_output else 'Answer portion only'}")
-    print(f"Filter: {'All examples' if args.include_incorrect else 'Both correct only'}")
     if args.limit:
         print(f"Limit: {args.limit} examples")
     print()
 
-    # Load results
+    # Load results for all languages
     print("Loading evaluation results...")
-    en_results = load_csv_results(args.en_csv)
-    zh_results = load_csv_results(args.zh_csv)
-    print(f"  English results: {len(en_results)} examples")
-    print(f"  Chinese results: {len(zh_results)} examples")
+    multilang_results = load_multilang_results(args.model, args.base_dir)
+    
+    if not multilang_results:
+        print("Error: No results loaded")
+        sys.exit(1)
 
     # Load tokenizers
     print("\nLoading tokenizers...")
@@ -399,67 +324,56 @@ def main():
         print("Error: No tokenizers loaded successfully")
         sys.exit(1)
 
-    # Analyze token lengths
+    # Record token lengths
     print("\n" + "=" * 80)
-    print("ANALYSIS")
+    print("RECORDING TOKEN LENGTHS")
     print("=" * 80)
 
-    both_correct_only = not args.include_incorrect
-
-    results = analyze_token_lengths(
-        en_results=en_results,
-        zh_results=zh_results,
+    token_records, common_ids, results_by_id = record_token_lengths(
+        multilang_results=multilang_results,
         tokenizers=tokenizers,
         limit=args.limit,
-        use_answer_only=not args.full_output,
-        both_correct_only=both_correct_only,
     )
 
     # Print summary
-    print_summary_table(results)
+    print_summary_table(token_records)
 
     # Save detailed results
     output_path = os.path.join(
         args.output_dir,
-        f"token_comparison_{'full' if args.full_output else 'answer'}_{'all' if args.include_incorrect else 'correct'}_mmath.csv"
+        f"token_records_{args.model}_mmath.csv"
     )
     save_detailed_results(
-        en_results=en_results,
-        zh_results=zh_results,
+        common_ids=common_ids,
+        results_by_id=results_by_id,
         tokenizers=tokenizers,
         output_path=output_path,
-        limit=args.limit,
-        use_answer_only=not args.full_output,
-        both_correct_only=both_correct_only,
     )
 
     # Save summary statistics
-    summary_path = os.path.join(args.output_dir, "summary_mmath.txt")
+    summary_path = os.path.join(args.output_dir, f"summary_{args.model}_mmath.txt")
     ensure_dir(args.output_dir)
     with open(summary_path, 'w') as f:
-        f.write("Token Length Comparison Summary\n")
+        f.write("Token Length Recording Summary\n")
         f.write("=" * 60 + "\n\n")
-        f.write(f"English CSV: {args.en_csv}\n")
-        f.write(f"Chinese CSV: {args.zh_csv}\n")
-        f.write(f"Analysis type: {'Full output' if args.full_output else 'Answer portion only'}\n")
-        f.write(f"Filter: {'All examples' if args.include_incorrect else 'Both correct only'}\n\n")
+        f.write(f"Model: {args.model}\n")
+        f.write(f"Languages: en, zh, es, th\n")
+        f.write(f"Base directory: {args.base_dir}\n\n")
 
-        for tok_name, stats in results.items():
+        for tok_name, lang_stats in token_records.items():
             f.write(f"\n{tok_name}:\n")
-            f.write(f"  Samples: {stats['n_samples']}\n")
-            f.write(f"  Avg EN tokens: {stats['avg_en_tokens']:.1f}\n")
-            f.write(f"  Avg ZH tokens: {stats['avg_zh_tokens']:.1f}\n")
-            f.write(f"  Median EN tokens: {stats['median_en_tokens']:.1f}\n")
-            f.write(f"  Median ZH tokens: {stats['median_zh_tokens']:.1f}\n")
-            f.write(f"  Avg ZH/EN ratio: {stats['avg_ratio']:.4f}\n")
-            f.write(f"  Median ZH/EN ratio: {stats['median_ratio']:.4f}\n")
-            f.write(f"  Total EN tokens: {stats['total_en_tokens']}\n")
-            f.write(f"  Total ZH tokens: {stats['total_zh_tokens']}\n")
+            for lang in sorted(lang_stats.keys()):
+                stats = lang_stats[lang]
+                f.write(f"  {lang.upper()}:\n")
+                f.write(f"    Samples: {stats['n_samples']}\n")
+                f.write(f"    Avg tokens: {stats['avg_tokens']:.1f}\n")
+                f.write(f"    Median tokens: {stats['median_tokens']:.1f}\n")
+                f.write(f"    Total tokens: {stats['total_tokens']}\n")
 
-    print(f"Summary saved to: {summary_path}")
+    print(f"\nSummary saved to: {summary_path}")
 
     print("\n" + "=" * 80)
-    print("Analysis complete!")
+    print("Recording complete!")
     print("=" * 80)
 
 

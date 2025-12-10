@@ -41,7 +41,7 @@ if __name__ == "__main__":
     #     max_param,
     #     min_param,
     #     "Models",
-    #     "results/mmath/en_vs_zh_vs_es_vs_th.pdf",
+    #     "results/mmath/en_vs_zh_vs_es_vs_th.png",
     #     yname="MMATH Accuracy",
     # )
     # accuracy_en = {
@@ -59,13 +59,13 @@ if __name__ == "__main__":
     # max_param = 0.95
     # min_param = 0.4
     # plot_multi_bar_v2(
-    #     accuracy_en,
-    #     accuracy_zh,
-    #     accuracy_zh_translate_then_solve,
+    #     [accuracy_en, accuracy_zh],
+    #     ["English", "Chinese"],
     #     max_param,
     #     min_param,
     #     "Models",
-    #     "results/gsm8k/en_vs_zh_vs_zh_translate_then_solve.pdf",
+    #     "results/gsm8k/en_vs_zh.png",
+    #     yname="GSM8K Accuracy",
     # )
     # chatgpt_en_path = "results/mmath/summary_chatgpt-5.1_en_direct_8192.json"
     # chatgpt_zh_path = "results/mmath/summary_chatgpt-5.1_zh_direct_8192.json"
@@ -112,25 +112,61 @@ if __name__ == "__main__":
     #     legend_labels=["English", "Chinese", "Spanish", "Thai"],
     # )
 
-    qwen_en_csv = "results/gsm8k/gsm8k_qwen3-8b_en_direct_maxtok4096.csv"
-    qwen_zh_csv = "results/gsm8k/gsm8k_qwen3-8b_zh_direct_maxtok4096.csv"
-    llama_en_csv = "results/gsm8k/gsm8k_llama-3.1-8b_en_direct_maxtok4096.csv"
-    llama_zh_csv = "results/gsm8k/gsm8k_llama-3.1-8b_zh_direct_maxtok4096.csv"
+    # qwen_csv = "results/gsm8k/token_comparison_answer_correct.csv"
+    # llama_csv = "results/gsm8k/llama/token_comparison_answer_correct.csv"
+    # chatgpt_csv = "results/mmath/chatgpt/token_records_chatgpt-5.1_mmath.csv"
+    # gemini_csv = "results/mmath/gemini-2.5/token_records_gemini-2.5_mmath.csv"
+    deepseek_csv = "results/mmath/deepseek/token_records_deepseek-v3.2_mmath.csv"
     
-    qwen_en_lengths = pd.read_csv(qwen_en_csv)["raw_output_length"].tolist()
-    qwen_zh_lengths = pd.read_csv(qwen_zh_csv)["raw_output_length"].tolist()
-    llama_en_lengths = pd.read_csv(llama_en_csv)["raw_output_length"].tolist()
-    llama_zh_lengths = pd.read_csv(llama_zh_csv)["raw_output_length"].tolist()
+    # qwen_en_lengths = pd.read_csv(qwen_csv)["qwen3-8b_en_tokens"].tolist()
+    # qwen_zh_lengths = pd.read_csv(qwen_csv)["qwen3-8b_zh_tokens"].tolist()
+    # llama_en_lengths = pd.read_csv(llama_csv)["llama-3.1-8b_en_tokens"].tolist()
+    # llama_zh_lengths = pd.read_csv(llama_csv)["llama-3.1-8b_zh_tokens"].tolist()
+    # chatgpt_en_lengths = pd.read_csv(chatgpt_csv)["deepseek-v3_en_tokens"].tolist()
+    # chatgpt_zh_lengths = pd.read_csv(chatgpt_csv)["deepseek-v3_zh_tokens"].tolist()
+    # chatgpt_es_lengths = pd.read_csv(chatgpt_csv)["deepseek-v3_es_tokens"].tolist()
+    # chatgpt_th_lengths = pd.read_csv(chatgpt_csv)["deepseek-v3_th_tokens"].tolist()
+    # gemini_en_lengths = pd.read_csv(gemini_csv)["deepseek-v3_en_tokens"].tolist()
+    # gemini_zh_lengths = pd.read_csv(gemini_csv)["deepseek-v3_zh_tokens"].tolist()
+    # gemini_es_lengths = pd.read_csv(gemini_csv)["deepseek-v3_es_tokens"].tolist()
+    # gemini_th_lengths = pd.read_csv(gemini_csv)["deepseek-v3_th_tokens"].tolist()
+    deepseek_en_lengths = pd.read_csv(deepseek_csv)["deepseek-v3_en_tokens"].tolist()
+    deepseek_zh_lengths = pd.read_csv(deepseek_csv)["deepseek-v3_zh_tokens"].tolist()
+    deepseek_es_lengths = pd.read_csv(deepseek_csv)["deepseek-v3_es_tokens"].tolist()
+    deepseek_th_lengths = pd.read_csv(deepseek_csv)["deepseek-v3_th_tokens"].tolist()
 
-    plot_length_distribution(
-        [qwen_en_lengths, qwen_zh_lengths],
-        "results/gsm8k/length_distribution_qwen.pdf",
-        xname="Output Lengths (Qwen3-8B)",
-        legend_labels=["English", "Chinese"],
-    )
-    plot_length_distribution(
-        [llama_en_lengths, llama_zh_lengths],
-        "results/gsm8k/length_distribution_llama.pdf",
-        xname="Output Lengths (Llama-3.1-8B-Instruct)",
-        legend_labels=["English", "Chinese"],
+    # plot_length_distribution(
+    #     [qwen_en_lengths, qwen_zh_lengths],
+    #     "results/gsm8k/token_distribution_qwen.png",
+    #     xname="Token Lengths (Qwen3-8B)",
+    #     legend_labels=["English", "Chinese"],
+    #     max_len=400,
+    # )
+    # plot_length_distribution(
+    #     [llama_en_lengths, llama_zh_lengths],
+    #     "results/gsm8k/token_distribution_llama.png",
+    #     xname="Token Lengths (Llama-3.1-8B-Instruct)",
+    #     legend_labels=["English", "Chinese"],
+    #     max_len=600,
+    # )
+    # plot_length_distribution_ridge(
+    #     [chatgpt_en_lengths, chatgpt_zh_lengths, chatgpt_es_lengths, chatgpt_th_lengths],
+    #     "results/mmath/token_distribution_chatgpt.png",
+    #     xname="Token Lengths (ChatGPT-5.1)",
+    #     legend_labels=["English", "Chinese", "Spanish", "Thai"],
+    #     max_len=750,
+    # )
+    # plot_length_distribution_ridge(
+    #     [gemini_en_lengths, gemini_zh_lengths, gemini_es_lengths, gemini_th_lengths],
+    #     "results/mmath/token_distribution_gemini.png",
+    #     xname="Token Lengths (Gemini-2.5-Flash)",
+    #     legend_labels=["English", "Chinese", "Spanish", "Thai"],
+    #     max_len=750,
+    # )
+    plot_length_distribution_ridge(
+        [deepseek_en_lengths, deepseek_zh_lengths, deepseek_es_lengths, deepseek_th_lengths],
+        "results/mmath/token_distribution_deepseek.png",
+        xname="Token Lengths (DeepSeek-V3.2)",
+        legend_labels=["English", "Chinese", "Spanish", "Thai"],
+        max_len=1500,
     )

@@ -46,6 +46,7 @@ def plot_multi_bar(
     xname: str,
     save_path: Path,
     title: str = "",
+    yname: str = "",
     legend: bool = True,
 ) -> None:
     """
@@ -90,6 +91,7 @@ def plot_multi_bar(
     ax.set_yticks([])
     ax.set_xlabel(xname)
     ax.set_ylim(0.0, 1.0)
+    ax.set_ylabel(yname)
     if legend:
         ax.legend(
             [colors, colors_alpha],
@@ -134,13 +136,13 @@ def plot_multi_bar_v2(
     # plt.rcParams['mathtext.bf'] = 'arial:bold'
     
     L = len(params_list)
-    width = 0.9 / L * 2
+    width = 0.9 / L 
     colors = ("#96ced3", "#e9c54e", "#e64b35", "#8491b4")
     # colors_alpha = tuple(to_rgba(c, alpha=0.3) for c in colors)
     # colors_alpha_2 = tuple(to_rgba(c, alpha=0.6) for c in colors)
-    x = np.arange(len(params_list[0])) * 2
+    x = np.arange(len(params_list[0])) 
     
-    fig, ax = plt.subplots(figsize=(18, 6))
+    fig, ax = plt.subplots(figsize=(10, 6))
     for i, params in enumerate(params_list):
         keys, values = zip(*params.items())
         norm_values = _rescale(np.array(values), min_param, max_param)
@@ -153,7 +155,7 @@ def plot_multi_bar_v2(
     ax.set_ylabel(yname)
     ax.set_ylim(0.0, 1.0)
     if legend:
-        ax.legend(loc='upper right', bbox_to_anchor=(1.2, 1))
+        ax.legend(loc='upper right', bbox_to_anchor=(1.33, 1))
     if title:
         plt.title(title)
     plt.tight_layout()
@@ -169,6 +171,7 @@ def plot_length_distribution(
     legend_labels: List[str] = None,
     smooth: bool = True,
     plot_avg: bool = True,
+    max_len: int = 400,
 ) -> None:
     plt.rcParams["font.family"] = "arial"  
     plt.rcParams["font.size"] = 18
@@ -184,7 +187,7 @@ def plot_length_distribution(
 
     for i, token_length in enumerate(token_lengths):
         token_length = np.array(
-            [L for L in token_length if 0 < L < 2000]
+            [L for L in token_length if 0 < L < max_len]
         )
 
         # Histogram (set density=True so KDE is on the same scale)
@@ -237,6 +240,7 @@ def plot_length_distribution_ridge(
     legend: bool = True,
     legend_labels: List[str] = None,
     plot_avg: bool = True,
+    max_len: int = 5000,
 ) -> None:
     """
     Ridge / joyplot style visualization of output-length distributions.
@@ -249,7 +253,7 @@ def plot_length_distribution_ridge(
     # Filter and collect all data first
     cleaned = []
     for tl in token_lengths:
-        arr = np.array([L for L in tl if 100 < L < 15000])
+        arr = np.array([L for L in tl if 10 < L < max_len])
         if len(arr) > 1:
             cleaned.append(arr)
         else:
@@ -257,7 +261,7 @@ def plot_length_distribution_ridge(
 
     # global x-range
     all_vals = np.concatenate([c for c in cleaned if c is not None])
-    x_min, x_max = 0, 5000   # Fix
+    x_min, x_max = 100, max_len   # Fix
     xs = np.linspace(x_min, x_max, 500)
 
     fig, ax = plt.subplots(figsize=(12, 6))

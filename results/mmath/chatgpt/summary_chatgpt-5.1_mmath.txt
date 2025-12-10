@@ -1,0 +1,29 @@
+Token Length Recording Summary
+============================================================
+
+Model: chatgpt-5.1
+Languages: en, zh, es, th
+Base directory: results/mmath
+
+
+deepseek-v3:
+  EN:
+    Samples: 238
+    Avg tokens: 282.6
+    Median tokens: 198.0
+    Total tokens: 67248
+  ES:
+    Samples: 238
+    Avg tokens: 317.2
+    Median tokens: 237.5
+    Total tokens: 75497
+  TH:
+    Samples: 238
+    Avg tokens: 314.1
+    Median tokens: 231.0
+    Total tokens: 74759
+  ZH:
+    Samples: 238
+    Avg tokens: 375.8
+    Median tokens: 282.5
+    Total tokens: 89445
