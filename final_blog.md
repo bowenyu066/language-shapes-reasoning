@@ -9,15 +9,15 @@ This raises a simple question: is performance limited by the representation we u
 
 To investigate these questions, we utilize an experimental setting where the same semantic content naturally appears in representations of different lengths, so that we can vary sequence length without changing meaning. Natural language provides exactly this kind of setting. Different languages express the same idea with very different token counts. For example, “To be or not to be, that is the question” is roughly 12 tokens in English, while the Chinese version (“生存还是毁灭，这是个问题”) compresses to about 9 tokens under standard tokenizers. This difference is inherent to the languages rather than something we chose artificially.
 
-Our experiments are organized around three questions. First, do well-trained models show representation-invariant reasoning? We evaluate state-of-the-art (SOTA) models on multilingual math benchmarks to test whether accuracy depends on the particular linguistic representation or only on the underlying problem. Second, when performance does differ, is it due to the architecture or to the training data distribution?? By comparing models trained on multilingual data with those trained primarily on English, we can separate architectural constraints from gaps in training coverage. Finally, if a model struggles with a denser representation, can a small amount of targeted fine-tuning close the gap? This tells us whether the bottleneck is baked into the architecture or mostly about optimization and coverage.
+Our experiments are organized around three questions. First, do well-trained models show representation-invariant reasoning? We evaluate state-of-the-art (SOTA) models on multilingual math benchmarks to test whether accuracy depends on the particular linguistic representation or only on the underlying problem. Second, when performance does differ, is it due to the architecture or to the training data distribution? By comparing models trained on multilingual data with those trained primarily on English, we can separate architectural constraints from gaps in training coverage. Finally, if a model struggles with a denser representation, can a small amount of targeted fine-tuning close the gap? This tells us whether the bottleneck is baked into the architecture or mostly about optimization and coverage.
 
-Our results show a consistent pattern. Representation choice clearly affects how many tokens are used, but it does not have to hurt reasoning as long as the model has been adapted to that representation. SOTA models can reach nearly the same accuracy across languages while using 5–10% fewer tokens in denser languages like Chinese. Models trained on narrower distributions show larger gaps at first, but modest fine-tuning recovers much of the lost performance. In practice, representation efficiency behaves less like a strict trade-off and more like a capability that can be unlocked with appropriate training.
+Our results show a consistent pattern. Representation choice clearly affects how many tokens are used, but it does not have to hurt reasoning as long as the model has been adapted to that representation. However, we find a critical distinction between *intrinsic density* (information per character) and *realized density* (information per token). Chinese is intrinsically denser, but whether this translates to computational savings depends on the tokenizer and model training. When aligned, SOTA models can reach nearly the same accuracy across languages while using 5–10% fewer tokens in Chinese. When misaligned, the theoretical advantage is lost or even inverted. Models trained on narrower distributions show larger gaps at first, but modest fine-tuning recovers much of the lost performance. In practice, representation efficiency behaves less like a strict trade-off and more like a capability that can be unlocked with appropriate training.
 
 Our findings extend beyond multilingual modeling. If reasoning performance is largely stable across different representation densities once models are adapted, then representation design should be treated as a first-class target for optimization. Instead of focusing only on more efficient attention mechanisms for fixed inputs, we can co-design models and representations that encode the same information in fewer tokens. Natural languages offer one family of such representations; learned compression schemes and domain-specific tokenizations offer others. Our work provides evidence and a concrete approach for studying how representation density interacts with reasoning fidelity, and for using representation design as a practical route to more efficient deep learning systems.
 
 ## Related Work
 
-Research into cost-effective sequence modeling generally fall into two catagories: speeding up how we process a fixed sequence of tokens, and changing the representation so that we start with fewer tokens in the first place.
+Research into cost-effective sequence modeling generally falls into two categories: speeding up how we process a fixed sequence of tokens, and changing the representation so that we start with fewer tokens in the first place.
 
 ### Efficient Processing of Fixed Representations
 
@@ -60,7 +60,7 @@ For SOTA models on MMATH, we use a maximum token budget of 8,192 and evaluate ac
 
 ### Token Length Analysis
 
-To measure representation efficiency independent of any single tokenizer's biases, we tokenize model outputs using five different tokenizers: Qwen3-8B, DeepSeek-V3, Seed-Coder-8B, Llama-3.1-8B, and GPT-4o (via tiktoken). For fair comparison, we restrict analysis to problems where the model answered correctly in both English and Chinese, ensuring we compare token counts for successful reasoning chains rather than failed attempts. We report the ratio of Chinese to English token counts, where values below 1.0 indicate that Chinese uses fewer tokens for equivalent reasoning.
+To measure representation efficiency independent of any single tokenizer's biases, we tokenize model outputs using five different tokenizers: Qwen3-8B, DeepSeek-V3, Seed-Coder-8B, Llama-3.1-8B, and GPT-4o (via tiktoken). For fair comparison, we restrict analysis to problems where the model answered correctly in both English and Chinese, ensuring we compare token counts for successful reasoning chains rather than failed attempts. We report the ratio of Chinese to English token counts, where values below 1.0 indicate that Chinese uses fewer tokens for equivalent reasoning. We also analyze raw character lengths to distinguish intrinsic density (characters) from realized density (tokens).
 
 ## Results and Analysis
 
@@ -82,23 +82,23 @@ Our first experiment evaluates whether well-trained frontier models achieve simi
 
 These results confirm that sufficiently trained models achieve near-equivalent reasoning performance regardless of which linguistic representation encodes the problem. The small gaps that do exist likely reflect residual differences in training data coverage rather than fundamental representation limitations. This establishes a critical premise: for well-trained models, the "semantic latent space" is stable—the model has learned to decouple *meaning* from *encoding*.
 
-**Intrinsic Density: Character-Level Analysis.** Having established reasoning invariance, we examine whether different representations exhibit different intrinsic densities. Figures 5–7 show the distribution of raw output character lengths across languages.
+**Intrinsic Density: Character-Level Analysis.** Having established reasoning invariance, we examine whether different representations exhibit different intrinsic densities. Figures 2–4 show the distribution of raw output character lengths across languages.
 
-![Figure 5: Character-length distributions for ChatGPT-5.1 over all four languages](/figures/length_distribution_chatgpt.png)
+![Figure 2: Character-length distributions for ChatGPT-5.1 over all four languages](/figures/length_distribution_chatgpt.png)
 
-![Figure 6: Character-length distributions for Gemini-2.5-Flash over all four languages](/figures/length_distribution_gemini.png)
+![Figure 3: Character-length distributions for Gemini-2.5-Flash over all four languages](/figures/length_distribution_gemini.png)
 
-![Figure 7: Character-length distributions for DeepSeek-V3.2 over all four languages](/figures/length_distribution_deepseek.png)
+![Figure 4: Character-length distributions for DeepSeek-V3.2 over all four languages](/figures/length_distribution_deepseek.png)
 
 A notable pattern emerges: DeepSeek-V3.2 produces substantially shorter Chinese outputs at the character level compared to English, while ChatGPT-5.1 and Gemini-2.5-Flash show more similar distributions across languages. Chinese, as a logographic writing system, naturally encodes more information per character than alphabetic scripts. Yet whether models *exploit* this intrinsic density varies—DeepSeek generates concise Chinese outputs, while ChatGPT and Gemini do not leverage this compactness to the same degree. This difference in *generation verbosity* foreshadows the divergence we observe at the token level.
 
 **Realized Density: Token-Level Analysis.** The central question is whether intrinsic density translates to computational savings. We define *realized density* as information per token—the actual sequence length processed by the Transformer, which determines computational cost via attention's $O(n^2)$ complexity.
 
-![Figure 2: Token length distributions for ChatGPT-5.1 over all four languages](/figures/token_distribution_chatgpt_mmath.png)
+![Figure 5: Token length distributions for ChatGPT-5.1 over all four languages](/figures/token_distribution_chatgpt_mmath.png)
 
-![Figure 3: Token length distributions for Gemini-2.5-Flash over all four languages](/figures/token_distribution_gemini_mmath.png)
+![Figure 6: Token length distributions for Gemini-2.5-Flash over all four languages](/figures/token_distribution_gemini_mmath.png)
 
-![Figure 4: Token length distributions for DeepSeek-V3.2 over all four languages](/figures/token_distribution_deepseek_mmath.png)
+![Figure 7: Token length distributions for DeepSeek-V3.2 over all four languages](/figures/token_distribution_deepseek_mmath.png)
 
 Here we observe a critical divergence:
 
@@ -170,7 +170,7 @@ Llama-3.1-8B shows a different pattern: English accuracy climbs steadily from 4.
 
 **Intrinsic Density: Character-Level Analysis.** Paralleling our analysis in Section 4.1, we examine whether the intrinsic density advantage of Chinese manifests in the open-source models' outputs. For the 1,088 problems where Qwen3-8B answered correctly in both languages, Chinese outputs average 314 characters compared to 616 for English—a 49% reduction (ZH/EN ratio = 0.51). This confirms that Chinese is intrinsically denser: the model expresses equivalent reasoning in roughly half the characters.
 
-[INSERT FIGURE: GSM8K character length distributions for Qwen3-8B]
+[Figure 8: GSM8K character length distributions for Qwen3-8B]
 
 This pattern is consistent with what we observed for DeepSeek-V3.2 on MMATH (Section 4.1), where Chinese outputs were ~35% shorter at the character level. Both well-trained models—Qwen and DeepSeek—produce concise Chinese outputs that exploit the representation's intrinsic density.
 
@@ -231,7 +231,7 @@ Together, these findings support treating representation choice as a first-class
 
 We set out to investigate whether representation choice affects reasoning quality, or only the token budget required to achieve it. Using natural languages as semantically-aligned representations of varying density, we evaluated mathematical reasoning across multiple models, languages, and experimental conditions. Our findings consistently support the thesis that **representation efficiency and reasoning quality are separable concerns**—denser representations reduce token counts without degrading accuracy, provided models have been adequately trained.
 
-Three key results emerge from our experiments. First, state-of-the-art models exhibit representation-invariant reasoning: ChatGPT-5.1 and DeepSeek-V3.2 achieve near-identical accuracy across English and Chinese (gaps under 2%) while Chinese outputs require 5–9% fewer tokens. The same mathematical content, encoded more compactly, yields equivalent reasoning at reduced computational cost. Second, representation capability reflects training distribution rather than architectural limitation. Llama-3.1-8B's 27.5% accuracy gap on Chinese versus English disappears in Qwen3-8B, which was trained on more balanced multilingual data. The bottleneck is not intrinsic to the representation or the architecture—it is an artifact of training. Third, representation bottlenecks are learnable. Modest fine-tuning (500 steps of LoRA) improves Llama's Chinese accuracy by 8.8 percentage points while preserving English performance, demonstrating that models can acquire new representation capabilities without catastrophic forgetting.
+Three key results emerge from our experiments. First, state-of-the-art models exhibit representation-invariant reasoning: ChatGPT-5.1 and DeepSeek-V3.2 achieve near-identical accuracy across English and Chinese (gaps under 2%). However, whether the intrinsic density of Chinese translates to token savings depends on what we call the Encoder Gap: when model training and tokenization are aligned with the representation, Chinese outputs require 5–10% fewer tokens; when misaligned, this advantage is lost or inverted. Second, representation capability reflects training distribution rather than architectural limitation. Llama-3.1-8B's 27.5% accuracy gap on Chinese versus English disappears in Qwen3-8B, which was trained on more balanced multilingual data. The bottleneck is not intrinsic to the representation or the architecture, but an artifact of training. Third, representation bottlenecks are learnable. Modest fine-tuning (500 steps of LoRA) improves Llama's Chinese accuracy by 8.8 percentage points while preserving English performance, demonstrating that models can acquire new representation capabilities without catastrophic forgetting.
 
 These findings reframe efficiency in deep learning. The dominant approach—optimizing how we process fixed representations through sparse attention, token pruning, or linear approximations—addresses only half the problem. Our results suggest a complementary strategy: optimizing the representation itself. When denser encodings preserve reasoning quality, choosing them yields efficiency gains that compound with scale and require no architectural modification.
 
