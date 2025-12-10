@@ -67,56 +67,56 @@ if __name__ == "__main__":
     #     "results/gsm8k/en_vs_zh.png",
     #     yname="GSM8K Accuracy",
     # )
-    # chatgpt_en_path = "results/mmath/summary_chatgpt-5.1_en_direct_8192.json"
-    # chatgpt_zh_path = "results/mmath/summary_chatgpt-5.1_zh_direct_8192.json"
-    # chatgpt_es_path = "results/mmath/summary_chatgpt-5.1_es_direct_8192.json"
-    # chatgpt_th_path = "results/mmath/summary_chatgpt-5.1_th_direct_8192.json"
-    # deepseek_en_path = "results/mmath/summary_deepseek-v3.2_en_direct_8192.json"
-    # deepseek_zh_path = "results/mmath/summary_deepseek-v3.2_zh_direct_8192.json"
-    # deepseek_es_path = "results/mmath/summary_deepseek-v3.2_es_direct_8192.json"
-    # deepseek_th_path = "results/mmath/summary_deepseek-v3.2_th_direct_8192.json"
-    # gemini_en_path = "results/mmath/summary_gemini-2.5_en_direct_8192.json"
-    # gemini_zh_path = "results/mmath/summary_gemini-2.5_zh_direct_8192.json"
-    # gemini_es_path = "results/mmath/summary_gemini-2.5_es_direct_8192.json"
-    # gemini_th_path = "results/mmath/summary_gemini-2.5_th_direct_8192.json"
+    chatgpt_en_path = "results/mmath/summary_chatgpt-5.1_en_direct_8192.json"
+    chatgpt_zh_path = "results/mmath/summary_chatgpt-5.1_zh_direct_8192.json"
+    chatgpt_es_path = "results/mmath/summary_chatgpt-5.1_es_direct_8192.json"
+    chatgpt_th_path = "results/mmath/summary_chatgpt-5.1_th_direct_8192.json"
+    deepseek_en_path = "results/mmath/summary_deepseek-v3.2_en_direct_8192.json"
+    deepseek_zh_path = "results/mmath/summary_deepseek-v3.2_zh_direct_8192.json"
+    deepseek_es_path = "results/mmath/summary_deepseek-v3.2_es_direct_8192.json"
+    deepseek_th_path = "results/mmath/summary_deepseek-v3.2_th_direct_8192.json"
+    gemini_en_path = "results/mmath/summary_gemini-2.5_en_direct_8192.json"
+    gemini_zh_path = "results/mmath/summary_gemini-2.5_zh_direct_8192.json"
+    gemini_es_path = "results/mmath/summary_gemini-2.5_es_direct_8192.json"
+    gemini_th_path = "results/mmath/summary_gemini-2.5_th_direct_8192.json"
 
-    # chatgpt_en_lengths = json.load(open(chatgpt_en_path))["output_lengths"]
-    # chatgpt_zh_lengths = json.load(open(chatgpt_zh_path))["output_lengths"]
-    # chatgpt_es_lengths = json.load(open(chatgpt_es_path))["output_lengths"]
-    # chatgpt_th_lengths = json.load(open(chatgpt_th_path))["output_lengths"]
-    # deepseek_en_lengths = json.load(open(deepseek_en_path))["output_lengths"]
-    # deepseek_zh_lengths = json.load(open(deepseek_zh_path))["output_lengths"]
-    # deepseek_es_lengths = json.load(open(deepseek_es_path))["output_lengths"]
-    # deepseek_th_lengths = json.load(open(deepseek_th_path))["output_lengths"]
-    # gemini_en_lengths = json.load(open(gemini_en_path))["output_lengths"]
-    # gemini_zh_lengths = json.load(open(gemini_zh_path))["output_lengths"]
-    # gemini_es_lengths = json.load(open(gemini_es_path))["output_lengths"]
-    # gemini_th_lengths = json.load(open(gemini_th_path))["output_lengths"]
+    chatgpt_en_lengths = json.load(open(chatgpt_en_path))["output_lengths"]
+    chatgpt_zh_lengths = json.load(open(chatgpt_zh_path))["output_lengths"]
+    chatgpt_es_lengths = json.load(open(chatgpt_es_path))["output_lengths"]
+    chatgpt_th_lengths = json.load(open(chatgpt_th_path))["output_lengths"]
+    deepseek_en_lengths = json.load(open(deepseek_en_path))["output_lengths"]
+    deepseek_zh_lengths = json.load(open(deepseek_zh_path))["output_lengths"]
+    deepseek_es_lengths = json.load(open(deepseek_es_path))["output_lengths"]
+    deepseek_th_lengths = json.load(open(deepseek_th_path))["output_lengths"]
+    gemini_en_lengths = json.load(open(gemini_en_path))["output_lengths"]
+    gemini_zh_lengths = json.load(open(gemini_zh_path))["output_lengths"]
+    gemini_es_lengths = json.load(open(gemini_es_path))["output_lengths"]
+    gemini_th_lengths = json.load(open(gemini_th_path))["output_lengths"]
 
-    # plot_length_distribution_ridge(
-    #     [gemini_en_lengths, gemini_zh_lengths, gemini_es_lengths, gemini_th_lengths],
-    #     "results/mmath/length_distribution_gemini(2).pdf",
-    #     xname="Output Lengths (Gemini-2.5-Flash)",
-    #     legend_labels=["English", "Chinese", "Spanish", "Thai"],
-    # )
-    # plot_length_distribution_ridge(
-    #     [deepseek_en_lengths, deepseek_zh_lengths, deepseek_es_lengths, deepseek_th_lengths],
-    #     "results/mmath/length_distribution_deepseek(2).pdf",
-    #     xname="Output Lengths (DeepSeek-V3.2)",
-    #     legend_labels=["English", "Chinese", "Spanish", "Thai"],
-    # )
-    # plot_length_distribution_ridge(
-    #     [chatgpt_en_lengths, chatgpt_zh_lengths, chatgpt_es_lengths, chatgpt_th_lengths],
-    #     "results/mmath/length_distribution_chatgpt(2).pdf",
-    #     xname="Output Lengths (ChatGPT-5.1)",
-    #     legend_labels=["English", "Chinese", "Spanish", "Thai"],
-    # )
+    plot_length_distribution_ridge(
+        [gemini_en_lengths, gemini_zh_lengths, gemini_es_lengths, gemini_th_lengths],
+        "figures/length_distribution_gemini.png",
+        xname="Output Lengths (Gemini-2.5-Flash)",
+        legend_labels=["English", "Chinese", "Spanish", "Thai"],
+    )
+    plot_length_distribution_ridge(
+        [deepseek_en_lengths, deepseek_zh_lengths, deepseek_es_lengths, deepseek_th_lengths],
+        "figures/length_distribution_deepseek.png",
+        xname="Output Lengths (DeepSeek-V3.2)",
+        legend_labels=["English", "Chinese", "Spanish", "Thai"],
+    )
+    plot_length_distribution_ridge(
+        [chatgpt_en_lengths, chatgpt_zh_lengths, chatgpt_es_lengths, chatgpt_th_lengths],
+        "figures/length_distribution_chatgpt.png",
+        xname="Output Lengths (ChatGPT-5.1)",
+        legend_labels=["English", "Chinese", "Spanish", "Thai"],
+    )
 
     # qwen_csv = "results/gsm8k/token_comparison_answer_correct.csv"
     # llama_csv = "results/gsm8k/llama/token_comparison_answer_correct.csv"
     # chatgpt_csv = "results/mmath/chatgpt/token_records_chatgpt-5.1_mmath.csv"
     # gemini_csv = "results/mmath/gemini-2.5/token_records_gemini-2.5_mmath.csv"
-    deepseek_csv = "results/mmath/deepseek/token_records_deepseek-v3.2_mmath.csv"
+    # deepseek_csv = "results/mmath/deepseek/token_records_deepseek-v3.2_mmath.csv"
     
     # qwen_en_lengths = pd.read_csv(qwen_csv)["qwen3-8b_en_tokens"].tolist()
     # qwen_zh_lengths = pd.read_csv(qwen_csv)["qwen3-8b_zh_tokens"].tolist()
@@ -130,10 +130,10 @@ if __name__ == "__main__":
     # gemini_zh_lengths = pd.read_csv(gemini_csv)["deepseek-v3_zh_tokens"].tolist()
     # gemini_es_lengths = pd.read_csv(gemini_csv)["deepseek-v3_es_tokens"].tolist()
     # gemini_th_lengths = pd.read_csv(gemini_csv)["deepseek-v3_th_tokens"].tolist()
-    deepseek_en_lengths = pd.read_csv(deepseek_csv)["deepseek-v3_en_tokens"].tolist()
-    deepseek_zh_lengths = pd.read_csv(deepseek_csv)["deepseek-v3_zh_tokens"].tolist()
-    deepseek_es_lengths = pd.read_csv(deepseek_csv)["deepseek-v3_es_tokens"].tolist()
-    deepseek_th_lengths = pd.read_csv(deepseek_csv)["deepseek-v3_th_tokens"].tolist()
+    # deepseek_en_lengths = pd.read_csv(deepseek_csv)["deepseek-v3_en_tokens"].tolist()
+    # deepseek_zh_lengths = pd.read_csv(deepseek_csv)["deepseek-v3_zh_tokens"].tolist()
+    # deepseek_es_lengths = pd.read_csv(deepseek_csv)["deepseek-v3_es_tokens"].tolist()
+    # deepseek_th_lengths = pd.read_csv(deepseek_csv)["deepseek-v3_th_tokens"].tolist()
 
     # plot_length_distribution(
     #     [qwen_en_lengths, qwen_zh_lengths],
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     #     "results/mmath/token_distribution_chatgpt.png",
     #     xname="Token Lengths (ChatGPT-5.1)",
     #     legend_labels=["English", "Chinese", "Spanish", "Thai"],
-    #     max_len=750,
+    #     max_len=700,
     # )
     # plot_length_distribution_ridge(
     #     [gemini_en_lengths, gemini_zh_lengths, gemini_es_lengths, gemini_th_lengths],
@@ -163,10 +163,10 @@ if __name__ == "__main__":
     #     legend_labels=["English", "Chinese", "Spanish", "Thai"],
     #     max_len=750,
     # )
-    plot_length_distribution_ridge(
-        [deepseek_en_lengths, deepseek_zh_lengths, deepseek_es_lengths, deepseek_th_lengths],
-        "results/mmath/token_distribution_deepseek.png",
-        xname="Token Lengths (DeepSeek-V3.2)",
-        legend_labels=["English", "Chinese", "Spanish", "Thai"],
-        max_len=1500,
-    )
+    # plot_length_distribution_ridge(
+    #     [deepseek_en_lengths, deepseek_zh_lengths, deepseek_es_lengths, deepseek_th_lengths],
+    #     "results/mmath/token_distribution_deepseek.png",
+    #     xname="Token Lengths (DeepSeek-V3.2)",
+    #     legend_labels=["English", "Chinese", "Spanish", "Thai"],
+    #     max_len=1500,
+    # )
