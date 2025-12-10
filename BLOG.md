@@ -6,35 +6,25 @@
 
 ## Introduction
 
-Sequence-based neural architectures have transformed how we model complex dependencies. Yet, the quadratic cost of self-attention, $O(n^2 d)$, remains a defining constraint. As sequence length $(n)$ grows, the computational and memory requirements for inference escalate, establishing 'tokens per second' as the primary metric of efficiency.
+Scaling sequence length has emerged as a dominant strategy for improving model performance. From extended context windows in Large Language Models to higher-resolution feature maps in vision transformers, the underlying premise is consistent: more tokens enable richer representations and more nuanced reasoning. Yet this pursuit collides with a fundamental constraint—the quadratic cost of self-attention, $O(n^2 d)$, which causes computational and memory requirements to escalate rapidly as sequence length $(n)$ grows.
 
-Crucially, this metric obscures a fundamental variable: information density. Because different encoding strategies can represent the exact same underlying information with vastly different token counts, the computational cost of processing a fixed unit of information varies significantly.
+This tension has spawned a rich body of work focused on a single question: how can we process the same representation more efficiently? In language modeling, researchers have proposed sparse attention patterns, learned compression tokens, and efficient approximations to reduce effective sequence length during inference. In computer vision, analogous efforts seek to lower the rank of latent spaces or prune redundant patches. These methods share a common assumption: the input representation is fixed, and efficiency gains must come from smarter processing.
 
-While recent work has explored methods to reduce sequence length, such as sparse attention patterns, learned compression tokens, and efficient approximations, the role of tokenization itself remains an underexplored dimension.
+However, this framing overlooks a more fundamental degree of freedom: the same information can be encoded in drastically different ways. In language, identical semantic content can be expressed across languages with vastly different token counts. In vision, autoencoders can learn compressed latent codes of varying dimensionality. In computational biology, the same protein can be embedded using different learned representations. The choice of representation—not just the method of processing—determines the token budget required.
 
-To study this phenomenon, we use multilingual Large Language Models as a strategic entry point. Consider the sentence: 'The quick brown fox jumps over the lazy dog.' In English, this consumes roughly 10 tokens. In Chinese ('快速的棕色狐狸跳过懒狗'), the same semantic content compresses to just 4–6 tokens. This natural variation provides an ideal experimental proxy to test the impact of compression.
+This distinction matters because different representations exhibit markedly different trade-offs between token efficiency and task performance. While this trade-off has been extensively studied in domains like vision (where reconstruction quality degrades with aggressive compression), it remains underexplored in language, where tokenization is often treated as a preprocessing detail rather than a design variable.
 
 In this investigation, we leverage these linguistic differences to determine whether the reduced sequence lengths inherent to logographic languages offer a genuine computational advantage, or if high-density tokenization exposes architectural bottlenecks that degrade reasoning capability.
 
-### Why This Matters for Deep Learning
+### Implications for Neural Architecture and Training
 
-Understanding the relationship between tokenization and reasoning has several implications:
+Understanding the trade-off between information density and reasoning fidelity extends beyond simple metric optimization; it fundamentally reshapes how we approach the design of scalable systems. If sequence length reduction can indeed be achieved without a loss in accuracy, future architectures might prioritize content-adaptive tokenizers that optimize specifically for semantic density rather than simple statistical character coverage. However, this shift implies significant changes to computational dynamics. High-density inputs create different gradient flow patterns and attention distributions compared to sparse inputs. Consequently, a shorter sequence carrying the same "informational load" may require distinct hyperparameter tuning or memory allocation during backpropagation to maintain stability.
 
-1. **Architectural design**: If sequence length reduction is purely tokenization-driven, models could benefit from language-adaptive tokenizers that optimize for semantic density rather than character coverage.
+This perspective also necessitates a re-evaluation of data curriculum and capacity planning. Current training paradigms generally mix data sources indiscriminately, but if token density correlates with reasoning difficulty, future strategies might need to weigh training data based on its informational compression rate rather than just its source origin. Furthermore, a critical theoretical question emerges regarding the interaction between token granularity and model parameterization: specifically, whether a model requires the same parameter budget to reason over a "dense" input as it does for a "sparse" input to achieve the same cognitive outcome.
 
-2. **Training dynamics**: Shorter sequences mean different gradient flow patterns, different attention distributions, and different memory requirements during backpropagation.
+### Hypothesis
 
-3. **Multilingual training**: Current multilingual models are trained on mixed-language corpora. Understanding tokenization effects could inform better data mixing strategies.
-
-4. **Theoretical understanding**: The interaction between tokenization granularity and model capacity is poorly understood—does a model need the same number of parameters to reason in Chinese vs. English?
-
-### Our Hypothesis
-
-We hypothesize that **tokenization efficiency is independent of reasoning capability** in multilingual transformers. Specifically:
-
-- **H1**: Languages with more compact tokenization (fewer tokens per semantic unit) will produce shorter output sequences for reasoning tasks
-- **H2**: This efficiency is **orthogonal** to reasoning accuracy—a model can be token-efficient in a language while performing poorly
-- **H3**: Prompting strategies like "think in language X" will not overcome fundamental multilingual training gaps
+We hypothesize that input compression, specifically tokenization efficiency, is functionally orthogonal to reasoning capability. Using multilingual Large Language Models as our experimental proxy, we predict that high-density languages will consistently produce shorter output sequences for complex reasoning tasks, confirming a raw computational advantage in terms of throughput. However, we anticipate a significant "fidelity gap" where this efficiency fails to correlate with reasoning success. In other words, a model may be highly efficient in processing a dense input (such as Chinese) while simultaneously exhibiting degraded reasoning performance compared to a sparse input (such as English). Furthermore, we posit that this gap is structural rather than superficial; simply forcing a "dense" reasoning mode via prompting strategies (e.g., "Think in Language X") will likely fail to overcome fundamental deficits in model representation, suggesting that true efficiency cannot be induced at inference time without sufficient training support.
 
 ---
 
