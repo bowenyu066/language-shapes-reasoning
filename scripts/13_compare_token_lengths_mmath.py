@@ -131,9 +131,11 @@ def analyze_token_lengths(
     Returns:
         Dictionary with analysis results.
     """
+    def _reg_id(id_):
+        return id_.split("_")[1]
     # Create lookup by ID for matching
-    en_by_id = {r["id"]: r for r in en_results}
-    zh_by_id = {r["id"]: r for r in zh_results}
+    en_by_id = {_reg_id(r["id"]): r for r in en_results}
+    zh_by_id = {_reg_id(r["id"]): r for r in zh_results}
 
     # Find common IDs (questions answered in both languages)
     common_ids = set(en_by_id.keys()) & set(zh_by_id.keys())
@@ -227,8 +229,11 @@ def save_detailed_results(
     both_correct_only: bool = True,
 ):
     """Save detailed per-example token counts to a CSV file."""
-    en_by_id = {r["id"]: r for r in en_results}
-    zh_by_id = {r["id"]: r for r in zh_results}
+    def _reg_id(id_):
+        return id_.split("_")[1]
+
+    en_by_id = {_reg_id(r["id"]): r for r in en_results}
+    zh_by_id = {_reg_id(r["id"]): r for r in zh_results}
     common_ids = set(en_by_id.keys()) & set(zh_by_id.keys())
 
     # Filter for both correct if requested
@@ -416,7 +421,7 @@ def main():
     # Save detailed results
     output_path = os.path.join(
         args.output_dir,
-        f"token_comparison_{'full' if args.full_output else 'answer'}_{'all' if args.include_incorrect else 'correct'}.csv"
+        f"token_comparison_{'full' if args.full_output else 'answer'}_{'all' if args.include_incorrect else 'correct'}_mmath.csv"
     )
     save_detailed_results(
         en_results=en_results,
@@ -429,7 +434,7 @@ def main():
     )
 
     # Save summary statistics
-    summary_path = os.path.join(args.output_dir, "summary.txt")
+    summary_path = os.path.join(args.output_dir, "summary_mmath.txt")
     ensure_dir(args.output_dir)
     with open(summary_path, 'w') as f:
         f.write("Token Length Comparison Summary\n")

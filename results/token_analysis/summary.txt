@@ -9,55 +9,55 @@ Filter: Both correct only
 
 qwen3-8b:
   Samples: 1088
-  Avg EN tokens: 207.8
-  Avg ZH tokens: 196.8
-  Median EN tokens: 197.0
-  Median ZH tokens: 186.0
-  Avg ZH/EN ratio: 0.9470
-  Median ZH/EN ratio: 0.9442
-  Total EN tokens: 226137
-  Total ZH tokens: 214147
+  Avg EN tokens: 308.4
+  Avg ZH tokens: 296.4
+  Median EN tokens: 298.0
+  Median ZH tokens: 284.0
+  Avg ZH/EN ratio: 0.9612
+  Median ZH/EN ratio: 0.9530
+  Total EN tokens: 335541
+  Total ZH tokens: 322531
 
 deepseek-v3:
   Samples: 1088
-  Avg EN tokens: 189.1
-  Avg ZH tokens: 167.8
-  Median EN tokens: 179.5
-  Median ZH tokens: 158.0
-  Avg ZH/EN ratio: 0.8872
-  Median ZH/EN ratio: 0.8802
-  Total EN tokens: 205753
-  Total ZH tokens: 182548
+  Avg EN tokens: 288.4
+  Avg ZH tokens: 258.9
+  Median EN tokens: 279.0
+  Median ZH tokens: 249.0
+  Avg ZH/EN ratio: 0.8978
+  Median ZH/EN ratio: 0.8925
+  Total EN tokens: 313749
+  Total ZH tokens: 281690
 
 seed-coder-8b:
   Samples: 1088
-  Avg EN tokens: 217.4
-  Avg ZH tokens: 198.0
-  Median EN tokens: 207.0
-  Median ZH tokens: 186.0
-  Avg ZH/EN ratio: 0.9108
-  Median ZH/EN ratio: 0.8986
-  Total EN tokens: 236554
-  Total ZH tokens: 215462
+  Avg EN tokens: 325.0
+  Avg ZH tokens: 303.1
+  Median EN tokens: 313.0
+  Median ZH tokens: 290.0
+  Avg ZH/EN ratio: 0.9327
+  Median ZH/EN ratio: 0.9265
+  Total EN tokens: 353574
+  Total ZH tokens: 329795
 
 llama-3.1-8b:
   Samples: 1088
-  Avg EN tokens: 195.8
-  Avg ZH tokens: 189.5
-  Median EN tokens: 185.0
-  Median ZH tokens: 179.0
-  Avg ZH/EN ratio: 0.9682
-  Median ZH/EN ratio: 0.9676
-  Total EN tokens: 212996
-  Total ZH tokens: 206219
+  Avg EN tokens: 294.1
+  Avg ZH tokens: 303.7
+  Median EN tokens: 285.0
+  Median ZH tokens: 290.0
+  Avg ZH/EN ratio: 1.0328
+  Median ZH/EN ratio: 1.0175
+  Total EN tokens: 319938
+  Total ZH tokens: 330422
 
 gpt-4o:
   Samples: 1088
-  Avg EN tokens: 195.1
-  Avg ZH tokens: 186.7
-  Median EN tokens: 184.5
-  Median ZH tokens: 176.0
-  Avg ZH/EN ratio: 0.9572
-  Median ZH/EN ratio: 0.9539
-  Total EN tokens: 212232
-  Total ZH tokens: 203139
+  Avg EN tokens: 292.9
+  Avg ZH tokens: 297.0
+  Median EN tokens: 284.0
+  Median ZH tokens: 286.0
+  Avg ZH/EN ratio: 1.0142
+  Median ZH/EN ratio: 1.0070
+  Total EN tokens: 318642
+  Total ZH tokens: 323151

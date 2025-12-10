@@ -1,0 +1,63 @@
+Token Length Comparison Summary
+============================================================
+
+English CSV: results/mmath/mmath_deepseek-v3.2_en_direct_maxtok8192.csv
+Chinese CSV: results/mmath/mmath_deepseek-v3.2_zh_direct_maxtok8192.csv
+Analysis type: Answer portion only
+Filter: Both correct only
+
+
+qwen3-8b:
+  Samples: 321
+  Avg EN tokens: 904.9
+  Avg ZH tokens: 847.9
+  Median EN tokens: 588.0
+  Median ZH tokens: 562.0
+  Avg ZH/EN ratio: 0.9370
+  Median ZH/EN ratio: 0.9558
+  Total EN tokens: 290485
+  Total ZH tokens: 272174
+
+deepseek-v3:
+  Samples: 321
+  Avg EN tokens: 823.6
+  Avg ZH tokens: 748.3
+  Median EN tokens: 537.0
+  Median ZH tokens: 485.0
+  Avg ZH/EN ratio: 0.9086
+  Median ZH/EN ratio: 0.9032
+  Total EN tokens: 264372
+  Total ZH tokens: 240196
+
+seed-coder-8b:
+  Samples: 321
+  Avg EN tokens: 941.5
+  Avg ZH tokens: 858.6
+  Median EN tokens: 625.0
+  Median ZH tokens: 552.0
+  Avg ZH/EN ratio: 0.9119
+  Median ZH/EN ratio: 0.8832
+  Total EN tokens: 302220
+  Total ZH tokens: 275606
+
+llama-3.1-8b:
+  Samples: 321
+  Avg EN tokens: 860.1
+  Avg ZH tokens: 813.3
+  Median EN tokens: 564.0
+  Median ZH tokens: 526.0
+  Avg ZH/EN ratio: 0.9456
+  Median ZH/EN ratio: 0.9326
+  Total EN tokens: 276100
+  Total ZH tokens: 261072
+
+gpt-4o:
+  Samples: 321
+  Avg EN tokens: 866.2
+  Avg ZH tokens: 811.5
+  Median EN tokens: 562.0
+  Median ZH tokens: 525.0
+  Avg ZH/EN ratio: 0.9368
+  Median ZH/EN ratio: 0.9342
+  Total EN tokens: 278058
+  Total ZH tokens: 260483

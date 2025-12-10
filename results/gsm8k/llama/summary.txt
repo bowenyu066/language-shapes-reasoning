@@ -1,0 +1,19 @@
+Token Length Comparison Summary
+============================================================
+
+English CSV: results/gsm8k/gsm8k_llama-3.1-8b_en_direct_maxtok4096.csv
+Chinese CSV: results/gsm8k/gsm8k_llama-3.1-8b_zh_direct_maxtok4096.csv
+Analysis type: Answer portion only
+Filter: Both correct only
+
+
+llama-3.1-8b:
+  Samples: 613
+  Avg EN tokens: 335.0
+  Avg ZH tokens: 308.9
+  Median EN tokens: 322.0
+  Median ZH tokens: 295.0
+  Avg ZH/EN ratio: 0.9221
+  Median ZH/EN ratio: 0.9161
+  Total EN tokens: 205345
+  Total ZH tokens: 189352
