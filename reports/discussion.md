@@ -1,14 +1,14 @@
 ## Discussion
+Our findings offer a new perspective on efficiency in deep learning sequences. Rather than focusing exclusively on architectural innovations to process fixed representations more efficiently, we demonstrate that meaningful gains may be achieved by selecting representations that encode the same information in fewer tokens. This shift moves the optimization perspective from the algorithmic level to the data level. Below, we discuss the implications of this perspective, its connection to broader research areas, and the limitations of our study.
 
-Our findings offer a new perspective on efficiency in deep learning: rather than focusing exclusively on architectural innovations to process fixed representations more efficiently, we can achieve meaningful gains by choosing representations that encode the same information in fewer tokens. We discuss the implications of this perspective, its connections to broader research themes, and the limitations of our study.
+### Beyond Architecture: Optimizing the Representation Itself
 
-### Representation as a First-Class Design Variable
-
-The dominant paradigm for efficient deep learning treats the input representation as fixed and seeks savings through algorithmic innovation—sparse attention, token pruning, linear approximations. Our results suggest a complementary approach: optimizing the representation itself. When SOTA models achieve equivalent accuracy on Chinese and English while using 5–9% fewer tokens in Chinese, they demonstrate that representation choice can yield efficiency gains without quality degradation.
+The dominant paradigm for efficient deep learning treats the input representation as fixed and seeks computational savings through algorithmic innovations such as sparse attention, token pruning, or linear approximations. Our results suggest a complementary and underutilized approach by optimizing the representation itself. When SOTA models achieve equivalent accuracy on Chinese and English while using 5–9% fewer tokens in Chinese, they demonstrate that representation choice can yield efficiency gains without quality degradation.
 
 These savings are not trivial at scale. A 9% reduction in token count translates to approximately 17% reduction in attention computation due to quadratic scaling. For large-scale deployments processing billions of tokens daily, such gains compound into substantial resource savings. Moreover, unlike architectural modifications that may require retraining or introduce approximation errors, representation choice operates at the input level and is fully compatible with existing model infrastructure.
 
 The key insight is that efficiency and quality need not trade off when the model has been adequately trained on the target representation. This reframes the question from "how do we process long sequences efficiently?" to "how do we encode information compactly while preserving what models need to reason?" Natural languages offer one answer—Chinese encodes mathematical content more densely than English—but the principle extends to any domain where multiple representations exist for the same underlying information.
+
 
 ### Implications for Efficient Inference
 
