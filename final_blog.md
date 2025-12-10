@@ -15,22 +15,24 @@ Our results show a consistent pattern. Representation choice clearly affects how
 
 Our findings extend beyond multilingual modeling. If reasoning performance is largely stable across different representation densities once models are adapted, then representation design should be treated as a first-class target for optimization. Instead of focusing only on more efficient attention mechanisms for fixed inputs, we can co-design models and representations that encode the same information in fewer tokens. Natural languages offer one family of such representations; learned compression schemes and domain-specific tokenizations offer others. Our work provides evidence and a concrete approach for studying how representation density interacts with reasoning fidelity, and for using representation design as a practical route to more efficient deep learning systems.
 
+![Figure 1: ](figures/overview.png)
+
 ## Related Work
 
 Research into cost-effective sequence modeling generally fall into two catagories: speeding up how we process a fixed sequence of tokens, and changing the representation so that we start with fewer tokens in the first place.
 
 ### Efficient Processing of Fixed Representations
 
-The quadratic cost of self-attention has led to many architectural tricks for cutting compute while keeping performance. A major line of work focuses on sparse attention, as in Longformer [1] and BigBird [2]. These models replace full attention with a mix of local windows, a few global tokens, and some random connections. This brings the complexity down from $O(n^2)$ toward $O(n)$ while still allowing information to move across the entire context. In practice, these ideas extend context length by about 4–8× on the same hardware and give noticeable gains on long-document tasks [2].
+The quadratic cost of self-attention has led to many architectural tricks for cutting compute while keeping performance. A major line of work focuses on sparse attention, as in Longformer [^1] and BigBird [^2]. These models replace full attention with a mix of local windows, a few global tokens, and some random connections. This brings the complexity down from $O(n^2)$ toward $O(n)$ while still allowing information to move across the entire context. In practice, these ideas extend context length by about 4–8× on the same hardware and give noticeable gains on long-document tasks [^2].
 
-Other approaches reduce the number of tokens as the model runs. In vision transformers, Token Merging (ToMe) [3] repeatedly merges similar tokens across layers, speeding up inference without any task-specific finetuning. Joint Token Pruning and Squeezing [4] pushes this further by folding information from dropped tokens into the ones that remain, rather than discarding it. These results make a clear point: not all tokens matter equally. In some setups, cutting 95% of tokens only costs under 1% accuracy [5].
+Other approaches reduce the number of tokens as the model runs. In vision transformers, Token Merging (ToMe) [^3] repeatedly merges similar tokens across layers, speeding up inference without any task-specific finetuning. Joint Token Pruning and Squeezing [^4] pushes this further by folding information from dropped tokens into the ones that remain, rather than discarding it. These results make a clear point: not all tokens matter equally. In some setups, cutting 95% of tokens only costs under 1% accuracy [^5].
 
-Linear-attention variants take a different route, approximating the softmax kernel so attention can be computed with associative matrix multiplications, again bringing complexity closer to $O(n)$ [6]. Across all of these methods, the input sequence is assumed fixed, and the goal is to process it more efficiently. This leaves open the question of whether we can instead redesign the representation itself to be more efficient.
+Linear-attention variants take a different route, approximating the softmax kernel so attention can be computed with associative matrix multiplications, again bringing complexity closer to $O(n)$ [^6]. Across all of these methods, the input sequence is assumed fixed, and the goal is to process it more efficiently. This leaves open the question of whether we can instead redesign the representation itself to be more efficient.
 
 ### Compact Representations Across Domains
 A separate line of work asks whether we can encode the same information more compactly before it ever reaches the transformer.
 
-Autoencoders and variational autoencoders [7] are classical examples. They learn to compress high-dimensional inputs into low-dimensional latent spaces. Their behavior is well described by the rate-distortion trade-off, where aggressive compression reduces bitrate but introduces reconstruction error following predictable information-theoretic curves [8]. In learned image compression, neural networks now rival classical codecs by learning latent representations that are explicitly optimized for reconstruction quality [9], achieving 10–20× compression while keeping perceptual quality high [10]. The key insight is that learned encodings can exploit statistical structure in data far better than hand-designed schemes.
+Autoencoders and variational autoencoders [^7] are classical examples. They learn to compress high-dimensional inputs into low-dimensional latent spaces. Their behavior is well described by the rate-distortion trade-off, where aggressive compression reduces bitrate but introduces reconstruction error following predictable information-theoretic curves [^8]. In learned image compression, neural networks now rival classical codecs by learning latent representations that are explicitly optimized for reconstruction quality [^9], achieving 10–20× compression while keeping perceptual quality high [^10]. The key insight is that learned encodings can exploit statistical structure in data far better than hand-designed schemes.
 
 However, a key gap remains between these compression studies and the need of large reasoning models. Most compression work targets reconstruction, where the objective is to faithfully recover the input signal. It is still unclear to what extent compact representations preserve the information necessary for reasoning, rather than just for signal recovery.
 
@@ -130,7 +132,7 @@ All five tokenizers show ZH/EN ratios below 1.0 (5–9% savings), confirming tha
 
 ### 4.2 Training Distribution Determines Representation Capability
 
-Our second experiment tests whether representation invariance is a property of model architecture or training distribution. We compare two 8B-parameter models with contrasting training emphases: Qwen3-8B and Llama-3.1-8B-Instruct. According to official documentation, Qwen3-8B was trained on 36 trillion tokens spanning 119 languages with explicit support for over 100 languages including Chinese [11]. In contrast, Meta's Llama-3.1-8B-Instruct officially supports only eight languages: English, German, French, Italian, Portuguese, Hindi, Spanish, and Thai. Notably, Meta explicitly stated that Llama 3.1 has been trained on a broader collection of languages than the 8 supported languages, but developers must fine-tune for unsupported languages, such as Chinese, for better performance [12]. Thus, the contrast between the two models allows us to isolate the effect of training distribution while controlling for model scale.
+Our second experiment tests whether representation invariance is a property of model architecture or training distribution. We compare two 8B-parameter models with contrasting training emphases: Qwen3-8B and Llama-3.1-8B-Instruct. According to official documentation, Qwen3-8B was trained on 36 trillion tokens spanning 119 languages with explicit support for over 100 languages including Chinese [^11]. In contrast, Meta's Llama-3.1-8B-Instruct officially supports only eight languages: English, German, French, Italian, Portuguese, Hindi, Spanish, and Thai. Notably, Meta explicitly stated that Llama 3.1 has been trained on a broader collection of languages than the 8 supported languages, but developers must fine-tune for unsupported languages, such as Chinese, for better performance [^12]. Thus, the contrast between the two models allows us to isolate the effect of training distribution while controlling for model scale.
 
 **Contrasting Performance Profiles.** On GSM8K, Qwen3-8B achieves 88.7% accuracy on English and 89.4% on Chinese (max tokens = 4096). These performances across representations are essentially identical—mirroring the representation invariance we observed in SOTA models in Section 4.1. However, the results diverge sharply for Llama-3.1-8B: 80.3% on English but only 52.8% on Chinese, a gap of 27.5 percentage points.
 
@@ -139,7 +141,7 @@ Our second experiment tests whether representation invariance is a property of m
 | Qwen3-8B | 88.7% | 89.4% | +0.7% |
 | Llama-3.1-8B | 80.3% | 52.8% | −27.5% |
 
-[Figure]
+![](/figures/en_vs_zh_gsm8k.png)
 
 This stark contrast reveals that the performance gap is not intrinsic to the Chinese representation—if it were, Qwen would also struggle. Instead, Llama's performance decline reflects its insufficient exposure to Chinese during training. The representation itself supports effective reasoning; the model simply hasn't learned to exploit it.
 
@@ -340,91 +342,18 @@ The Chinese GSM8K dataset was created by translating the original English GSM8K 
 | Max Completion Length | 4096 tokens |
 | Training Data | Chinese GSM8K train split (7,473 examples) |
 
----
-
-### A.5 Output Length Distributions
-
-#### Figure A.1: MMATH Output Length Distribution by Language (ChatGPT-5.1)
-
-[INSERT FIGURE: `results/mmath/length_distribution_chatgpt.pdf`]
-
-*Distribution of raw output lengths (characters) for ChatGPT-5.1 across languages on MMATH. Chinese outputs (red) show a left-shifted distribution compared to English (blue), indicating more concise responses.*
-
----
-
-#### Figure A.2: MMATH Output Length Distribution by Language (DeepSeek-V3.2)
-
-[INSERT FIGURE: `results/mmath/length_distribution_deepseek.pdf`]
-
-*Distribution of raw output lengths for DeepSeek-V3.2. The pattern is consistent with ChatGPT-5.1: Chinese outputs are more compact while maintaining equivalent accuracy.*
-
----
-
-#### Figure A.3: GSM8K Output Length Distribution (Qwen3-8B)
-
-[INSERT FIGURE: `results/gsm8k/length_distribution_qwen.pdf`]
-
-*Token length distribution for Qwen3-8B on GSM8K. Chinese outputs (red) cluster at lower token counts than English (blue), demonstrating representation efficiency in a model with balanced multilingual training.*
-
----
-
-#### Figure A.4: GSM8K Output Length Distribution (Llama-3.1-8B)
-
-[INSERT FIGURE: `results/gsm8k/length_distribution_llama.pdf`]
-
-*Token length distribution for Llama-3.1-8B on GSM8K. Unlike Qwen, the distributions overlap substantially, reflecting Llama's less efficient Chinese tokenization due to English-centric training.*
-
----
-
-### A.6 Accuracy vs. Max Tokens
-
-#### Figure A.5: Accuracy vs. Token Budget (GSM8K)
-
-[INSERT FIGURE: `results/gsm8k/en_vs_zh_vs_zh_translate_then_solve.pdf`]
-
-*Accuracy as a function of maximum token budget for Llama-3.1-8B and Qwen3-8B on GSM8K. Qwen achieves near-peak accuracy by 512 tokens in both languages, while Llama's Chinese accuracy plateaus well below its English ceiling regardless of token budget.*
-
----
-
-### A.7 Cross-Language Accuracy Comparison
-
-#### Figure A.6: MMATH Accuracy Across Languages
-
-[INSERT FIGURE: `results/mmath/en_vs_zh_vs_es_vs_th.pdf`]
-
-*Accuracy comparison across English, Chinese, Spanish, and Thai for SOTA models on MMATH. Well-trained models (ChatGPT-5.1, DeepSeek-V3.2) exhibit representation-invariant performance with gaps under 10% across languages.*
-
----
-
-#### Figure A.7: MMATH English vs. Chinese Accuracy
-
-[INSERT FIGURE: `results/mmath/en_vs_zh.pdf`]
-
-*Direct comparison of English and Chinese accuracy on MMATH. Points near the diagonal indicate representation-invariant performance; deviation below the diagonal indicates Chinese underperformance.*
-
 
 ### References
 
-[1] Beltagy, I., Peters, M. E., & Cohan, A. (2020). Longformer: The Long-Document Transformer. arXiv:2004.05150.
-
-[2] Zaheer, M., Guruganesh, G., Dubey, A., et al. (2020). Big Bird: Transformers for Longer Sequences. NeurIPS 2020.
-
-[3] Bolya, D., Fu, C.-Y., Dai, X., Zhang, P., Feichtenhofer, C., & Hoffman, J. (2023). Token Merging: Your ViT But Faster. ICLR 2023.
-
-[4] Wei, Y., et al. (2023). Joint Token Pruning and Squeezing Towards More Aggressive Compression of Vision Transformers. CVPR 2023.
-
-[5] Efficient Vision Transformer via Token Merger. IEEE Transactions on Image Processing, 2023.
-
-[6] Tay, Y., Dehghani, M., Bahri, D., & Metzler, D. (2022). Efficient Transformers: A Survey. ACM Computing Surveys.
-
-[7] Kingma, D. P., & Welling, M. (2014). Auto-Encoding Variational Bayes. ICLR 2014.
-
-[8] Ballé, J., Laparra, V., & Simoncelli, E. P. (2017). End-to-end Optimized Image Compression. ICLR 2017.
-
-[9] Liu, J., et al. (2023). Learned Image Compression with Mixed Transformer-CNN Architectures. CVPR 2023.
-
-[10] Chen, T., et al. (2024). Variational Autoencoder-based Neural Network Model Compression. arXiv:2408.14513.
-
-[11] Qwen Team. (2025). Qwen3-8B Model Card. Hugging Face. https://huggingface.co/Qwen/Qwen3-8B
-
-[12] Meta AI. (2024). Llama-3.1-8B-Instruct Model Card. Hugging Face. https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct
+[^1]: Beltagy, I., Peters, M. E., & Cohan, A. (2020). Longformer: The Long-Document Transformer. arXiv:2004.05150.
+[^2]: Zaheer, M., Guruganesh, G., Dubey, A., et al. (2020). Big Bird: Transformers for Longer Sequences. NeurIPS 2020.
+[^3]: Bolya, D., Fu, C.-Y., Dai, X., Zhang, P., Feichtenhofer, C., & Hoffman, J. (2023). Token Merging: Your ViT But Faster. ICLR 2023.
+[^4]: Wei, Y., et al. (2023). Joint Token Pruning and Squeezing Towards More Aggressive Compression of Vision Transformers. CVPR 2023.
+[^5]: Efficient Vision Transformer via Token Merger. IEEE Transactions on Image Processing, 2023.
+[^6]: Tay, Y., Dehghani, M., Bahri, D., & Metzler, D. (2022). Efficient Transformers: A Survey. ACM Computing Surveys.
+[^7]: Kingma, D. P., & Welling, M. (2014). Auto-Encoding Variational Bayes. ICLR 2014.  
+[^8]: Ballé, J., Laparra, V., & Simoncelli, E. P. (2017). End-to-end Optimized Image Compression. ICLR 2017.
+[^9]: Liu, J., et al. (2023). Learned Image Compression with Mixed Transformer-CNN Architectures. CVPR 2023.
+[^10]: Chen, T., et al. (2024). Variational Autoencoder-based Neural Network Model Compression. arXiv:2408.14513.
+[^11]: Qwen Team. (2025). Qwen3-8B Model Card. Hugging Face. https://huggingface.co/Qwen/Qwen3-8B
+[^12]: Meta AI. (2024). Llama-3.1-8B-Instruct Model Card. Hugging Face. https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct
