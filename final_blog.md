@@ -1,3 +1,7 @@
+# Representation Efficiency in Neural Reasoning: Evidence from Multilingual Mathematical Benchmarks
+
+### Authors: Bowen Yu, Linrui Ma, Yiwei Liang
+
 ## 1. Introduction
 Sequence length constitutes a central bottleneck in modern deep learning. The Transformer architecture has become the dominant architecture in multiple domains, including language modeling, computer vision, and protein structure prediction. Yet, its efficacy is bound by a core limitation: the self-attention mechanism, which scales quadratically with sequence length, $O(n^2 d)$. As a result, despite longer inputs usually help with richer context and more complex reasoning, they also suffer from slower and memory intensive inference.
 
@@ -231,7 +235,7 @@ Our experiments yield three key insights, unified by the framework of intrinsic 
 
 Together, these findings support treating representation choice as a first-class design variable, but with an important qualification. Realizing efficiency gains from dense representations requires alignment across three layers: (1) choosing representations with high intrinsic density, (2) using tokenizers that preserve that density, and (3) training models that exploit rather than waste the density advantage. When all three layers are aligned, denser representations offer genuine efficiency gains at no accuracy cost. When misaligned, the theoretical advantage becomes a practical liability.
 
-## Conclusion
+## 5. Conclusion
 
 We set out to investigate whether representation choice affects reasoning quality, or only the token budget required to achieve it. Using natural languages as semantically-aligned representations of varying density, we evaluated mathematical reasoning across multiple models, languages, and experimental conditions. Our findings consistently support the thesis that **representation efficiency and reasoning quality are separable concerns**. Denser representations reduce token counts without degrading accuracy, provided models have been adequately trained.
 
@@ -260,15 +264,7 @@ The Chinese GSM8K dataset was created by translating the original English GSM8K 
 
 ### A.2 Full Accuracy Tables
 
-#### Table A.1: MMATH Results by Model and Language
-
-| Model | English | Chinese | Spanish | Japanese | Thai |
-|-------|---------|---------|---------|----------|------|
-| ChatGPT-5.1 | 79.9% (299/374) | 78.3% (293/374) | 77.8% (291/374) | 73.3% (274/374) | 70.9% (265/374) |
-| DeepSeek-V3.2 | 88.5% (331/374) | 87.7% (328/374) | 88.5% (331/374) | 85.6% (320/374) | 85.0% (318/374) |
-| Gemini-2.5 | 20.9% (78/374) | 80.7% (302/374) | 46.8% (175/374) | 46.5% (174/374) | 48.7% (182/374) |
-
-#### Table A.2: GSM8K Results by Model, Language, and Max Tokens
+#### Table A.1: GSM8K Results by Model, Language, and Max Tokens
 
 **Llama-3.1-8B:**
 
@@ -290,7 +286,7 @@ The Chinese GSM8K dataset was created by translating the original English GSM8K 
 | 1024 | 88.5% (1167/1319) | 89.8% (1185/1319) | 90.1% (1188/1319) |
 | 4096 | 88.7% (1170/1319) | 89.4% (1179/1319) | 89.8% (1185/1319) |
 
-#### Table A.3: Fine-tuned Llama-3.1-8B Results
+#### Table A.2: Fine-tuned Llama-3.1-8B Results
 
 | Model | English | Chinese | ZH (translate-then-solve) |
 |-------|---------|---------|---------------------------|
@@ -301,7 +297,7 @@ The Chinese GSM8K dataset was created by translating the original English GSM8K 
 
 ### A.3 Token Length Analysis
 
-#### Table A.4: ZH/EN Token Ratio by Tokenizer (GSM8K, Both Correct Only)
+#### Table A.3: ZH/EN Token Ratio by Tokenizer (GSM8K, Both Correct Only)
 
 | Tokenizer | Samples | Avg EN Tokens | Avg ZH Tokens | ZH/EN Ratio |
 |-----------|---------|---------------|---------------|-------------|
@@ -311,7 +307,7 @@ The Chinese GSM8K dataset was created by translating the original English GSM8K 
 | Llama-3.1-8B | 1,088 | 294.1 | 303.7 | 1.033 |
 | GPT-4o | 1,088 | 292.9 | 297.0 | 1.014 |
 
-#### Table A.5: ZH/EN Token Ratio by Tokenizer (MMATH, Both Correct Only)
+#### Table A.4: ZH/EN Token Ratio by Tokenizer (MMATH, Both Correct Only)
 
 | Tokenizer | Samples | Avg EN Tokens | Avg ZH Tokens | ZH/EN Ratio |
 |-----------|---------|---------------|---------------|-------------|
