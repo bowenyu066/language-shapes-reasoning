@@ -18,7 +18,7 @@ For fine-tuning experiments, we adapt Llama-3.1-8B on the Chinese GSM8K training
 
 All models receive problems formatted with language-appropriate prompts instructing step-by-step reasoning and a final numerical answer in the format `#### <number>`. We extract answers via regex matching and evaluate exact numerical correctness.
 
-For SOTA models on MMATH, we use a maximum token budget of 8,192 and evaluate across five languages (English, Chinese, Japanese, Spanish, Thai). For open-source models on GSM8K, we sweep maximum token budgets from 128 to 4,096 to analyze accuracy as a function of generation length, revealing how quickly models converge to their peak performance in each representation.
+For SOTA models on MMATH, we use a maximum token budget of 8,192 and evaluate across five languages (English, Chinese, Japanese, Spanish, Thai). For open-source models on GSM8K, we sweep maximum token budgets from 128 to 4,096 to analyze accuracy as a function of generation length, revealing how quickly models converge to their peak performance in each representation. More detailed configurations can be found in the appendix.
 
 ### Token Length Analysis
 
