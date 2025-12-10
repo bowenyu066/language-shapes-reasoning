@@ -15,7 +15,7 @@ Our results show a consistent pattern. Representation choice clearly affects how
 
 Our findings extend beyond multilingual modeling. If reasoning performance is largely stable across different representation densities once models are adapted, then representation design should be treated as a first-class target for optimization. Instead of focusing only on more efficient attention mechanisms for fixed inputs, we can co-design models and representations that encode the same information in fewer tokens. Natural languages offer one family of such representations; learned compression schemes and domain-specific tokenizations offer others. Our work provides evidence and a concrete approach for studying how representation density interacts with reasoning fidelity, and for using representation design as a practical route to more efficient deep learning systems.
 
-![Figure 1: ](figures/overview.png)
+![Figure 1: The Representation Bottleneck. (A) Identical semantic content can be encoded into representations of varying density (e.g., English vs. Chinese). (B) Due to the quadratic cost of self-attention $O(n^2)$, denser representations offer significant computational savings. (C) The critical trade-off between tokenization efficiency and model performance](figures/overview.png)
 
 ## Related Work
 
@@ -74,7 +74,7 @@ Our first experiment evaluates whether well-trained frontier models achieve simi
 
 **Accuracy Results.** Table 1 presents accuracy on MMATH across four languages for three frontier models. ChatGPT-5.1 achieves 80.0% accuracy on English and 78.3% on Chinese—a gap of merely 1.7 percentage points. DeepSeek-V3.2 shows even stronger representation invariance, with English at 88.5% and Chinese at 87.7% (0.8% gap). Across all three models, the maximum accuracy gap between any two languages remains under 10 percentage points.
 
-![Figure 1: MMATH accuracy across languages (English, Chinese, Spanish, and Thai)](/figures/en_vs_zh_vs_es_vs_th_mmath.png)
+![Figure 2: MMATH accuracy across languages (English, Chinese, Spanish, and Thai)](/figures/en_vs_zh_vs_es_vs_th_mmath.png)
 
 | Model | English | Chinese | Spanish | Thai |
 |-------|---------|---------|---------|------|
@@ -86,21 +86,21 @@ These results confirm that sufficiently trained models achieve near-equivalent r
 
 **Intrinsic Density: Character-Level Analysis.** Having established reasoning invariance, we examine whether different representations exhibit different intrinsic densities. Figures 5–7 show the distribution of raw output character lengths across languages.
 
-![Figure 5: Character-length distributions for ChatGPT-5.1 over all four languages](/figures/length_distribution_chatgpt.png)
+![Figure 3: Character-length distributions for ChatGPT-5.1 over all four languages](/figures/length_distribution_chatgpt.png)
 
-![Figure 6: Character-length distributions for Gemini-2.5-Flash over all four languages](/figures/length_distribution_gemini.png)
+![Figure 4: Character-length distributions for Gemini-2.5-Flash over all four languages](/figures/length_distribution_gemini.png)
 
-![Figure 7: Character-length distributions for DeepSeek-V3.2 over all four languages](/figures/length_distribution_deepseek.png)
+![Figure 5: Character-length distributions for DeepSeek-V3.2 over all four languages](/figures/length_distribution_deepseek.png)
 
 A notable pattern emerges: DeepSeek-V3.2 produces substantially shorter Chinese outputs at the character level compared to English, while ChatGPT-5.1 and Gemini-2.5-Flash show more similar distributions across languages. Chinese, as a logographic writing system, naturally encodes more information per character than alphabetic scripts. Yet whether models *exploit* this intrinsic density varies—DeepSeek generates concise Chinese outputs, while ChatGPT and Gemini do not leverage this compactness to the same degree. This difference in *generation verbosity* foreshadows the divergence we observe at the token level.
 
 **Realized Density: Token-Level Analysis.** The central question is whether intrinsic density translates to computational savings. We define *realized density* as information per token—the actual sequence length processed by the Transformer, which determines computational cost via attention's $O(n^2)$ complexity.
 
-![Figure 2: Token length distributions for ChatGPT-5.1 over all four languages](/figures/token_distribution_chatgpt_mmath.png)
+![Figure 6: Token length distributions for ChatGPT-5.1 over all four languages](/figures/token_distribution_chatgpt_mmath.png)
 
-![Figure 3: Token length distributions for Gemini-2.5-Flash over all four languages](/figures/token_distribution_gemini_mmath.png)
+![Figure 7: Token length distributions for Gemini-2.5-Flash over all four languages](/figures/token_distribution_gemini_mmath.png)
 
-![Figure 4: Token length distributions for DeepSeek-V3.2 over all four languages](/figures/token_distribution_deepseek_mmath.png)
+![Figure 8: Token length distributions for DeepSeek-V3.2 over all four languages](/figures/token_distribution_deepseek_mmath.png)
 
 Here we observe a critical divergence:
 
@@ -141,7 +141,7 @@ Our second experiment tests whether representation invariance is a property of m
 | Qwen3-8B | 88.7% | 89.4% | +0.7% |
 | Llama-3.1-8B | 80.3% | 52.8% | −27.5% |
 
-![](/figures/en_vs_zh_gsm8k.png)
+![Figure 9: GSM8K accuracy across languages (English and Chinese)](/figures/en_vs_zh_gsm8k.png)
 
 This stark contrast reveals that the performance gap is not intrinsic to the Chinese representation—if it were, Qwen would also struggle. Instead, Llama's performance decline reflects its insufficient exposure to Chinese during training. The representation itself supports effective reasoning; the model simply hasn't learned to exploit it.
 
@@ -172,7 +172,9 @@ Llama-3.1-8B shows a different pattern: English accuracy climbs steadily from 4.
 
 **Intrinsic Density: Character-Level Analysis.** Paralleling our analysis in Section 4.1, we examine whether the intrinsic density advantage of Chinese manifests in the open-source models' outputs. For the 1,088 problems where Qwen3-8B answered correctly in both languages, Chinese outputs average 314 characters compared to 616 for English—a 49% reduction (ZH/EN ratio = 0.51). This confirms that Chinese is intrinsically denser: the model expresses equivalent reasoning in roughly half the characters.
 
-[INSERT FIGURE: GSM8K character length distributions for Qwen3-8B]
+![Figure 10: GSM8K character length distributions for Qwen3-8B](/figures/length_distribution_qwen.png)
+
+![Figure 11: GSM8K character length distributions for Llama-3.1-8B](/figures/length_distribution_llama.png)
 
 This pattern is consistent with what we observed for DeepSeek-V3.2 on MMATH (Section 4.1), where Chinese outputs were ~35% shorter at the character level. Both well-trained models—Qwen and DeepSeek—produce concise Chinese outputs that exploit the representation's intrinsic density.
 
