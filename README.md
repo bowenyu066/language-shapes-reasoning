@@ -9,9 +9,7 @@
 
 ![Overview](/figures/overview.png)
 
----
-
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Key Findings](#key-findings)
@@ -24,9 +22,7 @@
 - [Extending the Pipeline](#extending-the-pipeline)
 - [Citation](#citation)
 
----
-
-## 🔍 Overview
+## Overview
 
 ### Research Motivation
 
@@ -63,9 +59,7 @@ Natural languages provide an ideal testbed: the same mathematical problem can be
 **Fine-tuned Models:**
 - Llama-3.1-8B + LoRA (Chinese GSM8K)
 
----
-
-## 🎯 Key Findings
+## Key Findings
 
 ### 1. Representation-Invariant Reasoning (SOTA Models)
 
@@ -104,9 +98,7 @@ Llama answered **446 problems correctly in English but incorrectly in Chinese** 
 
 Modest fine-tuning substantially improves performance without catastrophic forgetting, demonstrating that representation efficiency is a **learnable capability**.
 
----
-
-## 🚀 Installation
+## Installation
 
 ### Prerequisites
 
@@ -135,7 +127,7 @@ pip install -q -U google-genai  # for Gemini
 pip install flash-attn --no-build-isolation
 ```
 
-> ⚠️ **Note**: Flash Attention installation can be tricky. If it fails, see the [official guide](https://github.com/Dao-AILab/flash-attention) or run local models without it (slower).
+> **Note**: Flash Attention installation can be tricky. If it fails, see the [official guide](https://github.com/Dao-AILab/flash-attention) or run local models without it (slower).
 
 ### API Keys
 
@@ -151,7 +143,7 @@ For persistent setup, add these to your `~/.bashrc` or `~/.zshrc`.
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Evaluate a Model (API)
 
@@ -201,7 +193,7 @@ python scripts/13_compare_token_lengths_mmath.py \
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 language-shapes-reasoning/
@@ -268,7 +260,7 @@ language-shapes-reasoning/
 
 ---
 
-## 🧪 Experiments
+## Experiments
 
 ### 1. Download & Process Data
 
@@ -345,7 +337,7 @@ python scripts/40_plot_results.py --output_dir figures/
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Model Configuration (`configs/models.yaml`)
 
@@ -395,7 +387,7 @@ prompts:
 
 ---
 
-## 📊 Results & Analysis
+## Results & Analysis
 
 ### Data Formats
 
@@ -434,7 +426,7 @@ Generated visualizations in `figures/`:
 
 ---
 
-## 🔧 Extending the Pipeline
+## Extending the Pipeline
 
 ### Add a New Model
 
@@ -473,25 +465,25 @@ my_model:
 
 ---
 
-## 📝 Deliverables
+## Deliverables
 
 **Paper**: See `final_blog.md` for the complete research writeup.
 
 ---
 
-## 👥 Contributors
+## Contributors
 
 **Bowen Yu, Linrui Ma, and Yiwei Liang**
 
 ---
 
-## 📄 License
+## License
 
 MIT License - see LICENSE file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - GSM8K dataset: [OpenAI](https://github.com/openai/grade-school-math)
 - MMATH benchmark: Multilingual Math Competition Problems
@@ -500,10 +492,8 @@ MIT License - see LICENSE file for details.
 
 ---
 
-## 📧 Contact
+## Contact
 
 For questions or collaborations:
 - Open an issue on GitHub
 - Email: {bowenyu, linrui, liangyw}@mit.edu
-
-**Project Repository**: https://github.com/bowenyu066/language-shapes-reasoning
